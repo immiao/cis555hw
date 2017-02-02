@@ -1,0 +1,7 @@
+package edu.upenn.cis455.webserver.utils;
+
+import java.util.concurrent.BlockingQueue;
+
+public class LinkedBlockingQueue implements BlockingQueue{
+
+}

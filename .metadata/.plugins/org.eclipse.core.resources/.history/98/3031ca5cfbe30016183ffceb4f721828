@@ -1,0 +1,10 @@
+package edu.upenn.cis455.webserver.utils;
+
+public class LinkedBlockingQueue{
+
+	public void add() {
+		notify();
+	}
+	
+	
+}

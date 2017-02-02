@@ -1,0 +1,26 @@
+package edu.upenn.cis455.webserver.utils;
+
+import edu.upenn.cis455.webserver.utils.*;
+
+public class ThreadPool {
+
+	private final int nTotalThreads;
+	private final MyThread[] threads;
+	private TaskBlockingQueue queue;
+	
+	public ThreadPool(int n, int capability) {
+		nTotalThreads = n;
+		queue = new TaskBlockingQueue(capability);
+		threads = new MyThread[nTotalThreads];
+	}
+	
+	public void execute(Runnable task) {
+		synchronized (queue) {
+			if (queue.add(task))
+				System.out.println("Task added successfully!");
+			else
+				System.out.println("Fail to add task!");
+			queue.notify();
+		}
+	}
+}

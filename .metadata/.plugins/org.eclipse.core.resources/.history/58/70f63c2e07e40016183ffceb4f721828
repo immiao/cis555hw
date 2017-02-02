@@ -1,0 +1,21 @@
+package edu.upenn.cis455.webserver.utils;
+
+public class TaskBlockingQueue {
+	
+	static class Node {
+		Runnable item;
+		Node next;
+		Node(Runnable task) { item = task; }
+	}
+	
+	private int capacity;
+	
+	public TaskBlockingQueue(int capacity) {
+		if (capacity <= 0) throw new IllegalArgumentException();
+		this.capacity = capacity;
+	}
+	
+	public void add(Runnable task) {
+		
+	}
+}
