@@ -1,0 +1,38 @@
+package edu.upenn.cis455.webserver.utils;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+
+public class HttpResponseRunnable implements Runnable{
+	private Socket socket;
+	private String rootDir;
+	
+	public HttpResponseRunnable(Socket socket, string rootDir) {
+		this.socket = socket;
+	}
+	
+	public void run() {
+		try {
+			
+			socket.setSoTimeout(5000); // does it work?
+	    	InputStreamReader reader = new InputStreamReader(socket.getInputStream());
+	    	BufferedReader in = new BufferedReader(reader);
+	    	PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+	    	
+	    	String request = in.readLine();
+	    	System.out.println(request);
+	    	if (request.equals("GET / HTTP/1.1"))
+	    		out.println("HTTP/1.1 200 OK\n\n<html><body>Hello world!</body></html>\n");
+	    	else
+	    		out.println("HTTP/1.1 500 Error\n\nNot understood: \"" +request+"\"");
+	    	socket.close();
+		} catch (SocketTimeoutException e) {
+			System.out.println("TIMEOUT");
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+}

@@ -7,5 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.upenn.cis455.webserver.HttpServer"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="8080 /home/cis455/workspace/HW1/mydir"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="HW1"/>
 </launchConfiguration>

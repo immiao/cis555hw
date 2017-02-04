@@ -1,0 +1,86 @@
+package edu.upenn.cis455.webserver.utils;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class HttpParser {
+	private InputStream is;
+	private String rootDir;
+	
+	// Response Initial Line
+	static private String ok200 = " 200 OK\r\n\r\n";
+	static private String error404 = " 404 Not Found\r\n\r\n";
+	// Initial Line
+	private String method;
+	private String dir;
+	private String version;
+	
+	public boolean ParseInitialLine(String[] initialLine) {
+		if (initialLine.length != 3)
+			return false;
+		method = initialLine[0];
+		File file = new File(initialLine[1]);
+		try {
+			dir  = file.getCanonicalPath();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
+		version = initialLine[2];
+		return true;
+	}
+	
+	public HttpParser(InputStream is, String rootDir) {
+		this.is = is;
+		this.rootDir = rootDir;
+	}
+	
+	public byte[] GetResult() {
+    	InputStreamReader reader = new InputStreamReader(is);
+    	BufferedReader in = new BufferedReader(reader);
+
+    	try {
+    		String[] initialLine = in.readLine().split(" ");
+        	if (!ParseInitialLine(initialLine))
+        		return (version + " 400 Bad Request\r\n\r\n").getBytes();
+        	
+        	//if (method == "GET")
+        	String path = new String("/mydir");
+        	
+        	System.out.println(path);
+        	File file = new File(path);
+        	System.out.println(file.getAbsolutePath());
+        	byte[] b0 = (version + ok200).getBytes();
+        	byte[] b = new byte[(int)file.length()];
+	    	FileInputStream fis = new FileInputStream(file);
+	    	fis.read(b);
+	    	fis.close();
+	    	byte[] b1 = new byte[b.length + b0.length];
+	    	
+	    	System.arraycopy(b0, 0, b1, 0, b0.length);
+	    	System.arraycopy(b, 0, b1, b0.length, b.length);
+	    	
+	    	return b1;
+	    	
+	    	// if (method == "HEAD")
+	    	
+    	} catch (Exception e) {
+    		return (version + error404).getBytes();
+    	}
+    	//return "HTTP/1.1 200 OK\r\n\r\n<html><body>Hello world!</body></html>\n".getBytes();
+    	
+//    	if (request.equals("GET / HTTP/1.1")) {
+//    		os.write("HTTP/1.1 200 OK\n\n<html><body>Hello world!</body></html>\n".getBytes());
+//    	}
+//    	else 
+//    		out.println("HTTP/1.1 500 Error\n\nNot understood: \"" +request+"\"");
+	}
+}

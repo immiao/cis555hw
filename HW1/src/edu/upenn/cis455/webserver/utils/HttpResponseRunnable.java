@@ -2,30 +2,45 @@ package edu.upenn.cis455.webserver.utils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class HttpResponseRunnable implements Runnable{
 	private Socket socket;
+	private String rootDir;
+	private HttpParser httpParser;
 	
-	public HttpResponseRunnable(Socket socket) {
+	public HttpResponseRunnable(Socket socket, String rootDir) {
 		this.socket = socket;
+		this.rootDir = rootDir;
+		try {
+			httpParser = new HttpParser(socket.getInputStream(), rootDir);
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	public void run() {
 		try {
-	    	InputStreamReader reader = new InputStreamReader(socket.getInputStream());
-	    	BufferedReader in = new BufferedReader(reader);
-	    	PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-	    	
-	    	String request = in.readLine();
-	    	if (request.equals("GET / HTTP/1.1"))
-	    		out.println("HTTP/1.1 200 OK\n\n<html><body>Hello world!</body></html>\n");
-	    	else
-	    		out.println("HTTP/1.1 500 Error\n\nNot understood: \"" +request+"\"");
-	    	socket.close();
+			OutputStream os = socket.getOutputStream();
+			socket.setSoTimeout(5000); // does it work?
+			os.write(httpParser.GetResult());
+			os.flush();
+			os.close();
+	    	//out.
+		} catch (SocketTimeoutException e) {
+			System.out.println("TIMEOUT");
 		} catch(Exception e) {
 			System.out.println(e.getMessage());
 		}
+		
+		try {
+			socket.close();
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+	
 	}
 }

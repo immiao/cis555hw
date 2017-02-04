@@ -1,8 +1,0 @@
-package edu.upenn.cis455.webserver.utils;
-
-public class HttpResponseThread extends Thread{
-	
-	public void run() {
-		
-	}
-}

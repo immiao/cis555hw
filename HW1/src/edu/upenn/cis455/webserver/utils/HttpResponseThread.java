@@ -15,12 +15,12 @@ public class HttpResponseThread extends Thread{
 					try {
 						queue.wait();
 					} catch (InterruptedException e) {
-						System.out.println(e.getMessage());
+						//System.out.println(e.getMessage());
 					}
 				}
 				
 				queue.poll().run();
-				System.out.println("Task polled");
+				//System.out.println("Task polled");
 			}
 		}
 	}
