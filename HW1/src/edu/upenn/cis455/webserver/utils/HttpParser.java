@@ -10,26 +10,47 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.TimeZone;
 
 public class HttpParser {
 	private InputStream is;
 	private String rootDir;
 	
 	// Response Initial Line
-	static private String ok200 = " 200 OK\r\n\r\n";
-	static private String error404 = " 404 Not Found\r\n\r\n";
+	static private byte[] http10ok200 = "HTTP/1.0 200 OK\r\n".getBytes();
+	static private byte[] http10error400 = "HTTP/1.0 400 Bad Request\r\n".getBytes();
+	static private byte[] http10error404 = "HTTP/1.0 404 Not Found\r\n".getBytes();
+	static private byte[] http10error501 = "HTTP/1.0 501 Not Implemented\r\n".getBytes();
+	static private byte[] http11ok200 = "HTTP/1.1 200 OK\r\n".getBytes();
+	static private byte[] http11error400 = "HTTP/1.1 400 Bad Request\r\n".getBytes();
+	static private byte[] http11error404 = "HTTP/1.1 404 Not Found\r\n".getBytes();
+	static private byte[] http11error501 = "HTTP/1.1 501 Not Implemented\r\n".getBytes();
+	
 	// Initial Line
 	private String method;
 	private String dir;
 	private String version;
 	
+	// Header
+	private HashMap<String, String> headerMap;
+	
 	public boolean ParseInitialLine(String[] initialLine) {
 		if (initialLine.length != 3)
 			return false;
 		method = initialLine[0];
+		
+		// handle absolute URL
+		if (initialLine[1].contains("http:/"))
+			initialLine[1] = initialLine[1].substring("http:/".length());
+		
 		File file = new File(initialLine[1]);
 		try {
 			dir  = file.getCanonicalPath();
+			System.out.println("CAN: " + dir);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -37,78 +58,205 @@ public class HttpParser {
 		return true;
 	}
 	
+	public boolean ParseHeader(BufferedReader in) {
+		try {
+			String line = in.readLine();
+			while (!line.isEmpty()) {
+				String[] headerline = line.split(":", 2);
+				if (headerline.length < 2)
+					return false;
+				headerMap.put(headerline[0].trim().toLowerCase(), headerline[1].trim());
+				line = in.readLine();
+			}
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	// initialized function is executed in the main thread
 	public HttpParser(InputStream is, String rootDir) {
 		this.is = is;
 		this.rootDir = rootDir;
+		
+		headerMap = new HashMap<String, String>();
 	}
 	
 	public byte[] GetResult() {
     	InputStreamReader reader = new InputStreamReader(is);
     	BufferedReader in = new BufferedReader(reader);
 
+    	byte[] initialLineByte = null;
+    	byte[] headerByte = null;
+    	byte[] bodyByte = null;
+    	
     	try {
-    		String[] initialLine = in.readLine().split(" ");
-//    		for (String s : initialLine) {
-//    			System.out.println(s);
-//    		}
-    		
-        	if (!ParseInitialLine(initialLine))
-        		return (version + " 400 Bad Request\r\n\r\n").getBytes();
-        	
-        	String path = new String(rootDir + dir);
-        	File file = new File(path);
-        	System.out.println(path);
-        	//System.out.println(method);
-        	if (method.equals("GET")) {
-	        	if (file.isDirectory()) {
-	        		System.out.println("Directory");
-	        		File[] files = file.listFiles();
-	        		String result = new String("*****This is a directory.*****\n\n");
-	        		for (File f : files) {
-	        			result += f.getName() + "\n";
-	        		}
-		        	byte[] b0 = (version + ok200).getBytes();
-		        	byte[] b1 = result.getBytes();
-			    	byte[] b = new byte[b0.length + b1.length];
-			    	
-			    	System.arraycopy(b0, 0, b, 0, b0.length);
-			    	System.arraycopy(b1, 0, b, b0.length, b1.length);
-			    	
-			    	return b;
+        	if (!ParseInitialLine(in.readLine().split(" "))) {
+        		initialLineByte = http10error400;
+        		headerByte = "\r\n".getBytes();
+        	}
+        	// HTTP/1.0
+        	else if (version.equals("HTTP/1.0")) {
+            	String path = new String(rootDir + dir);
+            	File file = new File(path);
+            	
+            	headerByte = "\r\n".getBytes();
+	        	if (method.equals("GET")) {
+	        		initialLineByte = http10ok200;
+		        	if (file.isDirectory()) {
+		        		File[] files = file.listFiles();
+		        		String result = new String("*****This is a directory.*****\n\n");
+		        		for (File f : files) {
+		        			result += f.getName() + "\n";
+		        		}
+			        	bodyByte = result.getBytes();				    	
+		        	}
+		        	else {
+			        	bodyByte = new byte[(int)file.length()];
+				    	FileInputStream fis = new FileInputStream(file);
+				    	fis.read(bodyByte);
+				    	fis.close();
+		        	}
 	        	}
-	        	else {
-		        	byte[] b0 = (version + ok200).getBytes();
-		        	byte[] b1 = new byte[(int)file.length()];
-		        	
+	        	else if (method.equals("HEAD")) {
 			    	FileInputStream fis = new FileInputStream(file);
-			    	System.out.println("HERE");
-			    	fis.read(b1);
-			    	fis.close();
-			    	
-			    	byte[] b = new byte[b0.length + b1.length];
-			    	
-			    	System.arraycopy(b0, 0, b, 0, b0.length);
-			    	System.arraycopy(b1, 0, b, b0.length, b1.length);
-			    	
-			    	return b;
+			    	initialLineByte = http10ok200;
 	        	}
+	        	else if (method.equals("POST"))
+	        		initialLineByte = http10error501;
+	        	else
+	        		initialLineByte = http10error400;
         	}
-        	else if (method.equals("HEAD")) {
-		    	FileInputStream fis = new FileInputStream(file);
-		    	return (version + ok200).getBytes();
+        	// HTTP/1.1
+        	else if (version.equals("HTTP/1.1")) {
+        		String headerStr = new String();
+        		// date
+        		Date date = new Date();
+        		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
+        		format.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        		headerStr += "Date: " + format.format(date) + "\r\n";
+        		
+        		if (!ParseHeader(in)) {
+        			initialLineByte = http11error400;
+        		}
+        		else {
+            		// check if HOST header exists
+            		if (!headerMap.containsKey("host")) {
+            			initialLineByte = http11error400;
+            		}
+            		else {
+                		// handle absolute URL
+                		String prefix0 = "/" + headerMap.get("host");
+                		String prefix1 = "/" + headerMap.get("host").split(":")[0];   		
+                		if (dir.contains(prefix0))
+                			dir = dir.substring(prefix0.length());
+                		else if (dir.contains(prefix1))
+                			dir = dir.substring(prefix1.length());
+    		
+                    	String path = new String(rootDir + dir);
+                    	File file = new File(path);
+        	        	if (method.equals("GET")) {
+        	        		initialLineByte = http11ok200;
+        		        	if (file.isDirectory()) {
+        		        		File[] files = file.listFiles();
+        		        		String result = new String("*****This is a directory.*****\n\n");
+        		        		for (File f : files) {
+        		        			result += f.getName() + "\n";
+        		        		}
+        			        	bodyByte = result.getBytes();
+        		        	}
+        		        	else { // add if-modified-since here
+        		        		String modifiedStr = headerMap.get("If-Modified-Since");
+        		        		String unmodifiedStr = headerMap.get("If-Unmodified-Since");
+        		        		SimpleDateFormat format0 = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
+        		        		SimpleDateFormat format1 = new SimpleDateFormat("EEEE, d-MMM-yy, hh:mm:ss z");
+        		        		SimpleDateFormat format2 = new SimpleDateFormat("EEE MMM d hh:mm:ss yyyy");
+        		        		
+        		        		Date modifiedDate = new Date(file.lastModified());
+        		        		System.out.println(format0.format(modifiedDate));
+        		        		if (modifiedStr != null) {
+        		        			Date mydate = format0.parse(modifiedStr);
+        		        			if (mydate == null) mydate = format1.parse(modifiedStr);
+        		        			if (mydate == null) mydate = format2.parse(modifiedStr);
+        		        			
+        		        			if (modifiedDate.after(mydate)) {
+                		        		bodyByte = new byte[(int)file.length()];
+                				    	FileInputStream fis = new FileInputStream(file);
+                				    	fis.read(bodyByte);
+                				    	fis.close();
+        		        			}
+        		        		}
+        		        		else if (unmodifiedStr != null) {
+        		        			Date mydate = format0.parse(unmodifiedStr);
+        		        			if (mydate == null) mydate = format1.parse(unmodifiedStr);
+        		        			if (mydate == null) mydate = format2.parse(unmodifiedStr);
+        		        			
+        		        			if (modifiedDate.before(mydate)) {
+                		        		bodyByte = new byte[(int)file.length()];
+                				    	FileInputStream fis = new FileInputStream(file);
+                				    	fis.read(bodyByte);
+                				    	fis.close();
+        		        			}
+        		        		}
+        		        		else {
+            		        		bodyByte = new byte[(int)file.length()];
+            				    	FileInputStream fis = new FileInputStream(file);
+            				    	fis.read(bodyByte);
+            				    	fis.close();
+        		        		}
+        		        	}
+        	        	}
+        	        	else if (method.equals("HEAD")) {
+        			    	FileInputStream fis = new FileInputStream(file);
+        			    	initialLineByte = http11ok200;
+        	        	}
+        	        	else if (method.equals("POST")) {
+        	        		initialLineByte = http11error501;
+        	        	}
+        	        	else
+        	        		initialLineByte = http11error400;
+            		}
+        		}    			
+        		headerByte = headerStr.getBytes();
         	}
-        	else
-        		return (version + error404).getBytes();
+        	else {
+        		initialLineByte = http10error400;
+        		headerByte = "\r\n".getBytes();
+        	}
 	    	
     	} catch (Exception e) {
-    		return (version + error404).getBytes();
-    	}
-    	//return "HTTP/1.1 200 OK\r\n\r\n<html><body>Hello world!</body></html>\n".getBytes();
+    		initialLineByte = http10error400;
+    		headerByte = "\r\n".getBytes();
+    	} 
+    	int initialLineLength = 0;
+    	int headerLength = 0;
+    	int bodyLength = 0;
     	
-//    	if (request.equals("GET / HTTP/1.1")) {
-//    		os.write("HTTP/1.1 200 OK\n\n<html><body>Hello world!</body></html>\n".getBytes());
-//    	}
-//    	else 
-//    		out.println("HTTP/1.1 500 Error\n\nNot understood: \"" +request+"\"");
+    	if (initialLineByte != null) initialLineLength = initialLineByte.length;
+    	if (headerByte != null) headerLength = headerByte.length;
+    	if (bodyByte != null) bodyLength = bodyByte.length;
+    	
+    	byte[] result = new byte[initialLineLength + headerLength + bodyLength];
+    	int offset = 0;
+    	
+    	if (initialLineByte != null) {
+    		System.out.println("initial line");
+	    	System.arraycopy(initialLineByte, 0, result, 0, initialLineByte.length);
+	    	offset += initialLineByte.length;
+    	}
+    	if (headerByte != null) {
+    		System.out.println("header");
+    		System.arraycopy(headerByte, 0, result, offset, headerByte.length);
+    		offset += headerByte.length;
+    	}
+    	
+    	if (bodyByte != null) {
+    		System.out.println("body");
+    		System.arraycopy(bodyByte, 0, result, offset, bodyByte.length);
+    	}
+    	
+    	return result;
 	}
 }

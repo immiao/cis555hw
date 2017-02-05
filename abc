@@ -1,1 +1,3 @@
-GET /../README HTTP/1.0
+GET http://localhost:8080/Google.html HTTP/1.1
+HOST: localhost:8080
+
