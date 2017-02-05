@@ -44,8 +44,8 @@ public class TaskBlockingQueue {
 	}
 	
 	public boolean empty() {
-		if (count > 0) return true;
-		return false;
+		if (count > 0) return false;
+		return true;
 	}
 	
 	public int getCount() {

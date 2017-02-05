@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import edu.upenn.cis455.webserver.*;
 
 public class HttpResponseRunnable implements Runnable{
 	private Socket socket;
@@ -15,10 +16,11 @@ public class HttpResponseRunnable implements Runnable{
 	public HttpResponseRunnable(Socket socket, String rootDir) {
 		this.socket = socket;
 		this.rootDir = rootDir;
+		
 		try {
 			httpParser = new HttpParser(socket.getInputStream(), rootDir);
 		} catch(Exception e) {
-			System.out.println(e.getMessage());
+			//System.out.println(e.getMessage());
 		}
 	}
 	
@@ -31,16 +33,15 @@ public class HttpResponseRunnable implements Runnable{
 			os.close();
 	    	//out.
 		} catch (SocketTimeoutException e) {
-			System.out.println("TIMEOUT");
+			//System.out.println("TIMEOUT");
 		} catch(Exception e) {
-			System.out.println(e.getMessage());
+			//System.out.println(e.getMessage());
 		}
 		
 		try {
 			socket.close();
 		} catch(Exception e) {
-			System.out.println(e.getMessage());
+			//System.out.println(e.getMessage());
 		}
-	
 	}
 }

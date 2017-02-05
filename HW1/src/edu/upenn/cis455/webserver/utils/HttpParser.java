@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
+import edu.upenn.cis455.webserver.*;
 
 public class HttpParser {
 	private InputStream is;
@@ -25,10 +26,11 @@ public class HttpParser {
 	static private byte[] http10error404 = "HTTP/1.0 404 Not Found\r\n".getBytes();
 	static private byte[] http10error501 = "HTTP/1.0 501 Not Implemented\r\n".getBytes();
 	static private byte[] http11ok200 = "HTTP/1.1 200 OK\r\n".getBytes();
+	static private byte[] http11error304 = "HTTP/1.1 304 Not Modified\r\n".getBytes();
 	static private byte[] http11error400 = "HTTP/1.1 400 Bad Request\r\n".getBytes();
 	static private byte[] http11error404 = "HTTP/1.1 404 Not Found\r\n".getBytes();
+	static private byte[] http11error412 = "HTTP/1.1 412 Precondition Failed\r\n".getBytes();
 	static private byte[] http11error501 = "HTTP/1.1 501 Not Implemented\r\n".getBytes();
-	
 	// Initial Line
 	private String method;
 	private String dir;
@@ -49,12 +51,13 @@ public class HttpParser {
 		File file = new File(initialLine[1]);
 		try {
 			dir  = file.getCanonicalPath();
-			System.out.println("CAN: " + dir);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		version = initialLine[2];
+		
+		//System.out.println(method + " " + dir + " " + version);
 		return true;
 	}
 	
@@ -95,7 +98,9 @@ public class HttpParser {
         	if (!ParseInitialLine(in.readLine().split(" "))) {
         		initialLineByte = http10error400;
         		headerByte = "\r\n".getBytes();
-        	}
+        		
+        		
+        	} 
         	// HTTP/1.0
         	else if (version.equals("HTTP/1.0")) {
             	String path = new String(rootDir + dir);
@@ -104,7 +109,22 @@ public class HttpParser {
             	headerByte = "\r\n".getBytes();
 	        	if (method.equals("GET")) {
 	        		initialLineByte = http10ok200;
-		        	if (file.isDirectory()) {
+	        		if (dir.equals("/shutdown")) {
+	            		HttpServer.shutdown();
+	            	}
+	        		else if (dir.equals("/control")) {
+	        			String result = new String("<html><body><b>Author: Kaixiang Miao (miaok)<\b>\n\n");
+	        			String[] threadState = HttpServer.threadPool.getstates();
+	        			
+	        			int i = 0;
+	        			for (String s : threadState) {
+	        				result += "<p>Thread " + i + ":" + s + "</p>\n";
+	        			}
+	        			result += "<form action=\"http://localhost:" + HttpServer.port + "/shutdown\"><input type=\"submit\" value=\"Shut Down\" /></form>";
+	        			result += "</body></html>";
+	        			bodyByte = result.getBytes();
+	        		}
+	        		else if (file.isDirectory()) {
 		        		File[] files = file.listFiles();
 		        		String result = new String("*****This is a directory.*****\n\n");
 		        		for (File f : files) {
@@ -159,7 +179,23 @@ public class HttpParser {
                     	File file = new File(path);
         	        	if (method.equals("GET")) {
         	        		initialLineByte = http11ok200;
-        		        	if (file.isDirectory()) {
+        	        		
+        	        		if (dir.equals("/shutdown")) {
+        	            		HttpServer.shutdown();
+        	            	}
+        	        		else if (dir.equals("/control")) {
+        	        			String result = new String("<html><body><p><b>Author: Kaixiang Miao (miaok)</b></p>\n\n");
+        	        			String[] threadState = HttpServer.threadPool.getstates();
+        	        			
+        	        			int i = 0;
+        	        			for (String s : threadState) {
+        	        				result += "<p>Thread " + i + ":" + s + "</p>\n";
+        	        			}
+        	        			result += "<a href=\"/shutdown\"><button>Shut Down</button></a>";
+        	        			result += "</body></html>";
+        	        			bodyByte = result.getBytes();
+        	        		}
+        	        		else if (file.isDirectory()) {
         		        		File[] files = file.listFiles();
         		        		String result = new String("*****This is a directory.*****\n\n");
         		        		for (File f : files) {
@@ -168,18 +204,25 @@ public class HttpParser {
         			        	bodyByte = result.getBytes();
         		        	}
         		        	else { // add if-modified-since here
-        		        		String modifiedStr = headerMap.get("If-Modified-Since");
-        		        		String unmodifiedStr = headerMap.get("If-Unmodified-Since");
+        		        		String modifiedStr = headerMap.get("if-modified-since");
+        		        		String unmodifiedStr = headerMap.get("if-unmodified-since");
         		        		SimpleDateFormat format0 = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
         		        		SimpleDateFormat format1 = new SimpleDateFormat("EEEE, d-MMM-yy, hh:mm:ss z");
         		        		SimpleDateFormat format2 = new SimpleDateFormat("EEE MMM d hh:mm:ss yyyy");
         		        		
         		        		Date modifiedDate = new Date(file.lastModified());
-        		        		System.out.println(format0.format(modifiedDate));
+
         		        		if (modifiedStr != null) {
-        		        			Date mydate = format0.parse(modifiedStr);
-        		        			if (mydate == null) mydate = format1.parse(modifiedStr);
-        		        			if (mydate == null) mydate = format2.parse(modifiedStr);
+        		        			Date mydate = null; 
+        		        			try {
+        		        				mydate = format0.parse(modifiedStr);
+        		        			} catch (Exception e0) {
+            		        			try {
+            		        				mydate = format1.parse(modifiedStr);
+            		        			} catch (Exception e1) {
+                		        				mydate = format2.parse(modifiedStr);
+                		        		}
+        		        			}
         		        			
         		        			if (modifiedDate.after(mydate)) {
                 		        		bodyByte = new byte[(int)file.length()];
@@ -187,6 +230,8 @@ public class HttpParser {
                 				    	fis.read(bodyByte);
                 				    	fis.close();
         		        			}
+        		        			else
+        		        				initialLineByte = http11error304;
         		        		}
         		        		else if (unmodifiedStr != null) {
         		        			Date mydate = format0.parse(unmodifiedStr);
@@ -199,6 +244,8 @@ public class HttpParser {
                 				    	fis.read(bodyByte);
                 				    	fis.close();
         		        			}
+        		        			else
+        		        				initialLineByte = http11error412;
         		        		}
         		        		else {
             		        		bodyByte = new byte[(int)file.length()];
@@ -219,7 +266,7 @@ public class HttpParser {
         	        		initialLineByte = http11error400;
             		}
         		}    			
-        		headerByte = headerStr.getBytes();
+        		headerByte = (headerStr + "\r\n").getBytes();
         	}
         	else {
         		initialLineByte = http10error400;
@@ -242,18 +289,18 @@ public class HttpParser {
     	int offset = 0;
     	
     	if (initialLineByte != null) {
-    		System.out.println("initial line");
+    		//System.out.println("initial line");
 	    	System.arraycopy(initialLineByte, 0, result, 0, initialLineByte.length);
 	    	offset += initialLineByte.length;
     	}
     	if (headerByte != null) {
-    		System.out.println("header");
+    		//System.out.println("header");
     		System.arraycopy(headerByte, 0, result, offset, headerByte.length);
     		offset += headerByte.length;
     	}
     	
     	if (bodyByte != null) {
-    		System.out.println("body");
+    		//System.out.println("body");
     		System.arraycopy(bodyByte, 0, result, offset, bodyByte.length);
     	}
     	

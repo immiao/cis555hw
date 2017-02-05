@@ -1,0 +1,4 @@
+GET http://localhost:8080/test.jpg HTTP/1.1
+HOST: localhost:8080
+If-modified-Since: Wed Dec 31 07:00:00 2001
+

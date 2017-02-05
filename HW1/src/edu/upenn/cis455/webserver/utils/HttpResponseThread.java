@@ -9,19 +9,20 @@ public class HttpResponseThread extends Thread{
 	}
 	
 	public void run() {
-		while (true) {
-			synchronized (queue) {
-				while (!queue.empty()) {
-					try {
+		try {
+			while (true) {
+				synchronized (queue) {
+					while (queue.empty()) {
 						queue.wait();
-					} catch (InterruptedException e) {
-						//System.out.println(e.getMessage());
 					}
+					queue.poll().run();
 				}
-				
-				queue.poll().run();
-				//System.out.println("Task polled");
 			}
+		} catch (InterruptedException e) {
+			//System.out.println(e.getMessage());
+			//System.out.println("shutdown1");
 		}
+		
 	}
+	
 }

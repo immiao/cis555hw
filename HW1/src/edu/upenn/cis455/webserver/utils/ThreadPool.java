@@ -20,10 +20,26 @@ public class ThreadPool {
 	public void execute(Runnable task) {
 		synchronized (queue) {
 			if (queue.add(task))
-				System.out.println("Task added successfully!");
+				;//System.out.println("Task added successfully!");
 			else
-				System.out.println("Fail to add task!");
+				;//System.out.println("Fail to add task!");
 			queue.notify();
 		}
+	}
+		
+	public void shutdown() {
+		for (int i = 0; i < nTotalThreads; i++) {
+			threads[i].interrupt();
+		}
+	}
+	
+	public String[] getstates() {
+		String[] s = new String[nTotalThreads];
+		
+		for (int i = 0; i < nTotalThreads; i++) {
+			s[i] = new String(threads[i].getState().name());
+			System.out.println(s[i]);
+		}
+		return s;
 	}
 }
