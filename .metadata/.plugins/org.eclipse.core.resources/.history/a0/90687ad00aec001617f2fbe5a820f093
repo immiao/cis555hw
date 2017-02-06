@@ -137,7 +137,6 @@ public class HttpParser {
 	        			int i = 0;
 	        			for (String s : threadState) {
 	        				result += "<p>Thread " + i + ":" + s + "</p>\n";
-	        				i++;
 	        			}
 	        			result += "<form action=\"http://localhost:" + HttpServer.port + "/shutdown\"><input type=\"submit\" value=\"Shut Down\" /></form>";
 	        			result += "</body></html>";
@@ -216,7 +215,6 @@ public class HttpParser {
         	        			int i = 0;
         	        			for (String s : threadState) {
         	        				result += "<p>Thread " + i + ":" + s + "</p>\n";
-        	        				i++;
         	        			}
         	        			result += "<a href=\"/shutdown\"><button>Shut Down</button></a>";
         	        			result += "</body></html>";
