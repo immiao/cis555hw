@@ -1,3 +1,3 @@
-GET http://localhost:8080/test.jpg HTTP/1.1
+GET /sample.html HTTP/1.0
 HOST: localhost:8080
 

@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -86,6 +87,23 @@ public class HttpParser {
 		headerMap = new HashMap<String, String>();
 	}
 	
+	public String GetExtensionHeader(String path) {
+		int i = path.lastIndexOf('.');
+		String ext = path.substring(i + 1).toLowerCase();
+		String header = new String();
+		if (ext.equals("jpg"))
+			header += "Content-Type : image/jpeg";
+		else if (ext.equals("gif"))
+			header += "Content-Type : image/gif";
+		else if (ext.equals("png"))
+			header += "Content-Type : image/png";
+		else if (ext.equals("txt"))
+			header += "Content-Type : text/plain";
+		else if (ext.equals("html"))
+			header += "Content-Type : text/html";
+		return header;
+	}
+	
 	public byte[] GetResult() {
     	InputStreamReader reader = new InputStreamReader(is);
     	BufferedReader in = new BufferedReader(reader);
@@ -133,6 +151,13 @@ public class HttpParser {
 			        	bodyByte = result.getBytes();				    	
 		        	}
 		        	else {
+		        		String header = new String();
+		        		header += GetExtensionHeader(file.getAbsolutePath());
+		        		if (header.length() != 0) {
+		        			header += "\r\n";
+		        			header += "Content-Length:" + file.length() + "\r\n\r\n";
+		        		}
+		        		headerByte = header.getBytes();
 			        	bodyByte = new byte[(int)file.length()];
 				    	FileInputStream fis = new FileInputStream(file);
 				    	fis.read(bodyByte);
@@ -211,7 +236,11 @@ public class HttpParser {
         		        		SimpleDateFormat format2 = new SimpleDateFormat("EEE MMM d hh:mm:ss yyyy");
         		        		
         		        		Date modifiedDate = new Date(file.lastModified());
-
+        		        		String header = GetExtensionHeader(file.getAbsolutePath());
+        		        		if (header.length() != 0) {
+        		        			headerStr += header + "\r\n";
+        		        			headerStr += "Content-Length:" + file.length() + "\r\n";
+        		        		}
         		        		if (modifiedStr != null) {
         		        			Date mydate = null; 
         		        			try {
@@ -274,7 +303,7 @@ public class HttpParser {
         	}
 	    	
     	} catch (Exception e) {
-    		initialLineByte = http10error400;
+    		initialLineByte = (version + " 404 Not Found\r\n").getBytes();
     		headerByte = "\r\n".getBytes();
     	} 
     	int initialLineLength = 0;

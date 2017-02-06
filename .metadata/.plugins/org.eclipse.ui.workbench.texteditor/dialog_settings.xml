@@ -9,6 +9,8 @@
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
 			<item value="System"/>
+			<item value="HERE"/>
+			<item value="CAN"/>
 		</list>
 		<list key="replacehistory">
 		</list>
