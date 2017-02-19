@@ -1,10 +1,6 @@
 package edu.upenn.cis455.webserver;
 
 import java.net.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import edu.upenn.cis455.webserver.utils.*;
 import java.io.*;
 public class HttpServer {
@@ -14,7 +10,6 @@ public class HttpServer {
   public static int port;
   
   public static void main(String args[]){
-    int waitingNum = 100;
     String rootDir;
     try {
 	    if (args.length == 0) {
@@ -23,13 +18,16 @@ public class HttpServer {
 	    	port = 8080;
 	    	rootDir = new String("/");
 	    }
-	    else {
+	    else if (args.length < 3){
 	    	port = Integer.parseInt(args[0]);
 	    	serverSocket = new ServerSocket(port);
 	    	if (args.length == 1)
 	    		rootDir = new String("/");
-	    	else
+	    	else // args.length == 2
 	    		rootDir = args[1];
+	    }
+	    else {
+	    	rootDir = new String("/"); 
 	    }
 	    
 	    while (!isShutDown) {
