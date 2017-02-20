@@ -23,9 +23,9 @@ public class TestHarness {
 			} else if (qName.compareTo("init-param") == 0) {
 				m_state = 4;
 			} else if (qName.compareTo("param-name") == 0) {
-				m_state = (m_state == 3) ? 10 : 20;
+				m_state = (m_state == 3) ? 10 : 20; // 20 is init-param
 			} else if (qName.compareTo("param-value") == 0) {
-				m_state = (m_state == 10) ? 11 : 21;
+				m_state = (m_state == 10) ? 11 : 21; // 21 is init-param
 			}
 		}
 		public void characters(char[] ch, int start, int length) {

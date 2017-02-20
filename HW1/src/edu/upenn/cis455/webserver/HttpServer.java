@@ -70,15 +70,15 @@ public class HttpServer {
 		HashMap<String, String> m_contextParams = new HashMap<String, String>();
 		HashMap<String, HashMap<String, String>> m_servletParams = new HashMap<String, HashMap<String, String>>();
 	}
-	
-	private static HashMap<String,HttpServlet> createServlets(Handler h, FakeContext fc) throws Exception {
-		HashMap<String,HttpServlet> servlets = new HashMap<String,HttpServlet>();
+
+	private static HashMap<String, HttpServlet> createServlets(Handler h, FakeContext fc) throws Exception {
+		HashMap<String, HttpServlet> servlets = new HashMap<String, HttpServlet>();
 		for (String servletName : h.m_servlets.keySet()) {
 			FakeConfig config = new FakeConfig(servletName, fc);
 			String className = h.m_servlets.get(servletName);
 			Class servletClass = Class.forName(className);
 			HttpServlet servlet = (HttpServlet) servletClass.newInstance();
-			HashMap<String,String> servletParams = h.m_servletParams.get(servletName);
+			HashMap<String, String> servletParams = h.m_servletParams.get(servletName);
 			if (servletParams != null) {
 				for (String param : servletParams.keySet()) {
 					config.setInitParam(param, servletParams.get(param));
@@ -89,7 +89,7 @@ public class HttpServer {
 		}
 		return servlets;
 	}
-	
+
 	private static FakeContext createContext(Handler h) {
 		FakeContext fc = new FakeContext();
 		for (String param : h.m_contextParams.keySet()) {
@@ -97,7 +97,7 @@ public class HttpServer {
 		}
 		return fc;
 	}
-	
+
 	static private boolean isShutDown = false;
 	static public ThreadPool threadPool = new ThreadPool(100, 1000);
 	static ServerSocket serverSocket;
@@ -121,9 +121,7 @@ public class HttpServer {
 				port = Integer.parseInt(args[0]);
 				serverSocket = new ServerSocket(port);
 				rootDir = args[1];
-			}
-			// use servlet
-			else {
+			} else {
 				port = Integer.parseInt(args[0]);
 				serverSocket = new ServerSocket(port);
 				rootDir = args[1];
