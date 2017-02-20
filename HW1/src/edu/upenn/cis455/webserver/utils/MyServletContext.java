@@ -19,7 +19,7 @@ public class MyServletContext implements ServletContext {
 	private String contextPath;
 	private String displayName;
 
-	MyServletContext(HashMap<String, String> initParams, String contextPath, String displayName) {
+	public MyServletContext(HashMap<String, String> initParams, String contextPath, String displayName) {
 		this.initParams = initParams;
 		this.contextPath = contextPath;
 		this.displayName = displayName;

@@ -9,36 +9,36 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
 public class MyServletConfig implements ServletConfig {
-	private String name;
-	private MyServletContext context;
-	private HashMap<String, String> initParams;
+	private String m_name;
+	private MyServletContext m_context;
+	private HashMap<String, String> m_initParams;
 	
-	public MyServletConfig(String name, MyServletContext context) {
-		this.name = name;
-		this.context = context;
-		initParams = new HashMap<String, String>();
+	public MyServletConfig(String name, MyServletContext context, HashMap<String, String> initParams) {
+		m_name = name;
+		m_context = context;
+		m_initParams = initParams;
 	}
 	
 	@Override
 	public String getInitParameter(String name) {
-		return initParams.get(name);
+		return m_initParams.get(name);
 	}
 
 	@Override
 	public Enumeration getInitParameterNames() {
-		Set<String> keys = initParams.keySet();
+		Set<String> keys = m_initParams.keySet();
 		Vector<String> atts = new Vector<String>(keys);
 		return atts.elements();
 	}
 
 	@Override
 	public ServletContext getServletContext() {
-		return context;
+		return m_context;
 	}
 
 	@Override
 	public String getServletName() {
-		return name;
+		return m_name;
 	}
 
 }

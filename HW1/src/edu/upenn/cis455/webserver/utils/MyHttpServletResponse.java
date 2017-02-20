@@ -43,7 +43,7 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	@Override
 	public ServletOutputStream getOutputStream() throws IOException {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // return null
 	}
 
 	@Override

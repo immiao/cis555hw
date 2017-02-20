@@ -20,6 +20,7 @@ import edu.upenn.cis455.webserver.*;
 public class HttpParser {
 	private InputStream is;
 	private String rootDir;
+	private HttpServer.Handler m_handler;
 	
 	// Response Initial Line
 	static private byte[] http10ok200 = "HTTP/1.0 200 OK\r\n".getBytes();
@@ -80,9 +81,10 @@ public class HttpParser {
 	}
 	
 	// initialized function is executed in the main thread
-	public HttpParser(InputStream is, String rootDir) {
+	public HttpParser(InputStream is, String rootDir, HttpServer.Handler h) {
 		this.is = is;
 		this.rootDir = rootDir;
+		this.m_handler = h;
 		
 		headerMap = new HashMap<String, String>();
 	}

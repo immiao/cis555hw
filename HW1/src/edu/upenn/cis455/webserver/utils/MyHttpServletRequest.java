@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletInputStream;
@@ -15,17 +18,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 public class MyHttpServletRequest implements HttpServletRequest {
-
+	
+	private MyHttpSession m_session;
+	private String m_method;
+	private HashMap<String, String> m_headerMap;
+	private HashMap<String, Object> m_attributes;
+	private HashMap<String, String> m_params;
+	private BufferedReader m_in;
+	
 	@Override
-	public Object getAttribute(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getAttribute(String name) {
+		return m_attributes.get(name);
 	}
 
 	@Override
 	public Enumeration getAttributeNames() {
-		// TODO Auto-generated method stub
-		return null;
+		Set<String> keys = m_attributes.keySet();
+		Vector<String> atts = new Vector<String>(keys);
+		return atts.elements();
 	}
 
 	@Override
@@ -36,20 +46,18 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public int getContentLength() {
-		// TODO Auto-generated method stub
-		return 0;
+		return Integer.parseInt(m_headerMap.get("content-length"));
 	}
 
 	@Override
 	public String getContentType() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_headerMap.get("content-type");
 	}
 
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // return null
 	}
 
 	@Override
@@ -73,7 +81,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public Locale getLocale() {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // return null
 	}
 
 	@Override
@@ -83,15 +91,13 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String getParameter(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getParameter(String name) {
+		return m_params.get(name);
 	}
 
 	@Override
 	public Map getParameterMap() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_params;
 	}
 
 	@Override
@@ -114,8 +120,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public BufferedReader getReader() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return m_in;
 	}
 
 	@Override
@@ -145,7 +150,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public RequestDispatcher getRequestDispatcher(String arg0) {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // return null
 	}
 
 	@Override
@@ -173,27 +178,24 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public void removeAttribute(String arg0) {
-		// TODO Auto-generated method stub
-
+	public void removeAttribute(String name) {
+		m_attributes.remove(name);
 	}
 
 	@Override
-	public void setAttribute(String arg0, Object arg1) {
-		// TODO Auto-generated method stub
-
+	public void setAttribute(String name, Object value) {
+		m_attributes.put(name, value);
 	}
 
 	@Override
 	public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public String getAuthType() {
-		// TODO Auto-generated method stub
-		return null;
+		return BASIC_AUTH;
 	}
 
 	@Override
@@ -307,7 +309,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public Principal getUserPrincipal() {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // return null
 	}
 
 	@Override
@@ -319,7 +321,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public boolean isRequestedSessionIdFromURL() {
 		// TODO Auto-generated method stub
-		return false;
+		return false; // deprecated
 	}
 
 	@Override
@@ -337,7 +339,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public boolean isUserInRole(String arg0) {
 		// TODO Auto-generated method stub
-		return false;
+		return false; // return false
 	}
 
 }
