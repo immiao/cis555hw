@@ -13,7 +13,8 @@ public class HttpResponseRunnable implements Runnable{
 	public HttpResponseRunnable(Socket socket, String rootDir, HttpServer.Handler h) {
 		m_socket = socket;
 		try {
-			m_httpParser = new HttpParser(socket.getInputStream(), rootDir, h);
+			m_httpParser = new HttpParser(socket.getInputStream(), rootDir, h, socket.getLocalAddress().toString(), 
+					socket.getLocalPort(), socket.getRemoteSocketAddress().toString(), socket.getPort());
 		} catch(Exception e) {
 			//System.out.println(e.getMessage());
 		}

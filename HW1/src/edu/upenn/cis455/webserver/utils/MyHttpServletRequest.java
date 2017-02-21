@@ -29,7 +29,6 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	private BufferedReader m_in;
 	private String m_charset = "ISO-8859-1";
 	private String m_serverName;
-	private int m_serverPort;
 	private String m_protocol;
 	private String m_contextPath;
 	private String m_servletPath;
@@ -38,20 +37,23 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	private String m_requestURI;
 	private String m_requestURL;
 	private Locale m_locale;
+	private String m_localAddr;
+	private int m_localPort;
+	private String m_remoteAddr;
+	private int m_remotePort;
 	
 	boolean hasSession() {
 		return ((m_session != null) && m_session.isValid());
 	}
 	
 	public MyHttpServletRequest(BufferedReader in, String method, HashMap<String, Vector<String>> headerMap, HashMap<String, Vector<String>> params, 
-			String name, int port, String protocol, String contextPath, String servletPath, String pathInfo, String queryString,
-			String requestURI, String requestURL, Locale locale) {
+			String name, String protocol, String contextPath, String servletPath, String pathInfo, String queryString,
+			String requestURI, String requestURL, Locale locale, String localAddr, int localPort, String remoteAddr, int remotePort) {
 		m_in = in;
 		m_method = method;
 		m_headerMap = headerMap;
 		m_params = params;
 		m_serverName = name;
-		m_serverPort = port;
 		m_protocol = protocol;
 		m_contextPath = contextPath;
 		m_servletPath = servletPath;
@@ -60,6 +62,10 @@ public class MyHttpServletRequest implements HttpServletRequest {
 		m_requestURI = requestURI;
 		m_requestURL = requestURL;
 		m_locale = locale;
+		m_localAddr = localAddr;
+		m_localPort = localPort;
+		m_remoteAddr = remoteAddr;
+		m_remotePort = remotePort;
 	}
 	
 	@Override
@@ -97,8 +103,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getLocalAddr() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_localAddr;
 	}
 
 	@Override
@@ -108,7 +113,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public int getLocalPort() {
-		return m_serverPort;
+		return m_localPort;
 	}
 
 	@Override
@@ -162,8 +167,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getRemoteAddr() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_remoteAddr;
 	}
 
 	@Override
@@ -174,8 +178,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public int getRemotePort() {
-		// TODO Auto-generated method stub
-		return 0;
+		return m_remotePort;
 	}
 
 	@Override
@@ -196,7 +199,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public int getServerPort() {
-		return m_serverPort;
+		return m_localPort;
 	}
 
 	@Override

@@ -53,6 +53,12 @@ public class HttpParser {
 	// hard-coded variables
 	private final String serverName = "CIS-555 Web Server";
 
+	// socket info
+	private String m_localAddr;
+	private int m_localPort;
+	private String m_remoteAddr;
+	private int m_remotePort;
+
 	private boolean ParseInitialLine(String[] initialLine) {
 		if (initialLine.length != 3)
 			return false;
@@ -130,10 +136,15 @@ public class HttpParser {
 	}
 
 	// initialized function is executed in the main thread
-	public HttpParser(InputStream is, String rootDir, HttpServer.Handler h) {
+	public HttpParser(InputStream is, String rootDir, HttpServer.Handler h, String localAddr, int localPort,
+			String remoteAddr, int remotePort) {
 		this.is = is;
 		this.rootDir = rootDir;
 		this.m_handler = h;
+		this.m_localAddr = localAddr;
+		this.m_localPort = localPort;
+		this.m_remoteAddr = remoteAddr;
+		this.m_remotePort = remotePort;
 	}
 
 	public String GetExtensionHeader(String path) {
@@ -300,9 +311,10 @@ public class HttpParser {
 									if (servletName != null) {
 
 										MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap,
-												paramsMap, serverName, HttpServer.port, protocol, null, null, null,
-												query, uri.toString(), null, null);
+												paramsMap, serverName, protocol, null, null, null,
+												query, uri.toString(), null, null, m_localAddr, m_localPort, m_remoteAddr, m_remotePort);
 										MyHttpServletResponse resp;
+										
 									} else if (file.isDirectory()) {
 										File[] files = file.listFiles();
 										String result = new String("*****This is a directory.*****\n\n");
