@@ -27,7 +27,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	private HashMap<String, Object> m_attributes;
 	private HashMap<String, Vector<String>> m_params;
 	private BufferedReader m_in;
-	private String m_charset = null;
+	private String m_charset = "ISO-8859-1";
 	private String m_serverName;
 	private int m_serverPort;
 	private String m_protocol;
@@ -37,6 +37,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	private String m_queryString;
 	private String m_requestURI;
 	private String m_requestURL;
+	private Locale m_locale;
 	
 	boolean hasSession() {
 		return ((m_session != null) && m_session.isValid());
@@ -44,7 +45,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	
 	public MyHttpServletRequest(BufferedReader in, String method, HashMap<String, Vector<String>> headerMap, HashMap<String, Vector<String>> params, 
 			String name, int port, String protocol, String contextPath, String servletPath, String pathInfo, String queryString,
-			String requestURI, String requestURL) {
+			String requestURI, String requestURL, Locale locale) {
 		m_in = in;
 		m_method = method;
 		m_headerMap = headerMap;
@@ -58,6 +59,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 		m_queryString = queryString;
 		m_requestURI = requestURI;
 		m_requestURL = requestURL;
+		m_locale = locale;
 	}
 	
 	@Override
@@ -111,8 +113,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public Locale getLocale() {
-		// TODO Auto-generated method stub
-		return null; // return null
+		return m_locale;
 	}
 
 	@Override

@@ -54,7 +54,7 @@ public class HttpServer {
 				m_servletName = value;
 				m_state = 0;
 			} else if (m_state == 2) {
-				m_servlets.put(m_servletName, value);
+				m_servletClass.put(m_servletName, value);
 				m_state = 0;
 			} else if (m_state == 5) {
 				m_displayName = value;
@@ -89,7 +89,7 @@ public class HttpServer {
 					System.exit(-1);
 				}
 				// get servlet name by url
-				m_servletMapping.put(value, m_servletName);
+				m_servletMapping.put(m_servletName, value);
 				m_servletName = null;
 				m_state = 0;
 			}
@@ -99,7 +99,7 @@ public class HttpServer {
 		public String m_servletName;
 		public String m_paramName;
 		public String m_displayName;
-		public HashMap<String, String> m_servlets = new HashMap<String, String>();
+		public HashMap<String, String> m_servletClass = new HashMap<String, String>();
 		public HashMap<String, String> m_contextParams = new HashMap<String, String>();
 		public HashMap<String, HashMap<String, String>> m_servletParams = new HashMap<String, HashMap<String, String>>();
 		public HashMap<String, String> m_servletMapping = new HashMap<String, String>();
@@ -107,10 +107,10 @@ public class HttpServer {
 
 	private static HashMap<String, HttpServlet> createServlets(Handler h, MyServletContext c) throws Exception {
 		HashMap<String, HttpServlet> servlets = new HashMap<String, HttpServlet>();
-		for (String servletName : h.m_servlets.keySet()) {
+		for (String servletName : h.m_servletClass.keySet()) {
 			
-			String className = h.m_servlets.get(servletName);
-			Class servletClass = Class.forName(className);
+			String className = h.m_servletClass.get(servletName);
+			Class servletClass = Class.forName("test.edu.upenn.cis455.hw1." + className);
 			HttpServlet servlet = (HttpServlet) servletClass.newInstance();
 			HashMap<String, String> servletParams = h.m_servletParams.get(servletName);
 			MyServletConfig config = new MyServletConfig(servletName, c, servletParams);
@@ -120,15 +120,13 @@ public class HttpServer {
 		return servlets;
 	}
 
-	private static MyServletContext createContext(Handler h, String path) {
-		MyServletContext c = new MyServletContext(h.m_contextParams, path, h.m_displayName);
-		return c;
-	}
-
 	static private boolean isShutDown = false;
 	static public ThreadPool threadPool = new ThreadPool(100, 1000);
 	static ServerSocket serverSocket;
 	public static int port;
+	
+	// servlet
+	public static HashMap<String, HttpServlet> m_servlets = null;
 
 	public static void main(String args[]) {
 		String rootDir = null;
@@ -155,8 +153,10 @@ public class HttpServer {
 				rootDir = args[1];
 				webXmlPath = args[2];
 				h = parseWebdotxml(webXmlPath);
+				MyServletContext c = new MyServletContext(h.m_contextParams, webXmlPath, h.m_displayName);
+				m_servlets = createServlets(h, c);
 			}
-
+			
 			while (!isShutDown) {
 				Socket socket = serverSocket.accept();
 				// socket.
@@ -167,7 +167,7 @@ public class HttpServer {
 				threadPool.execute(task);
 			}
 		} catch (Exception e) {
-			 System.out.println("Exception");
+			e.printStackTrace();
 		}
 
 	}

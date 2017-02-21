@@ -1,5 +1,6 @@
 package edu.upenn.cis455.webserver.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Locale;
@@ -9,15 +10,19 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 public class MyHttpServletResponse implements HttpServletResponse {
-	private String m_contentType;
+	private String m_contentType = "text/html";
 	private int m_contentLength;
 	private int m_bufferSize;
-	private String m_charset;
+	private String m_charset = "ISO-8859-1";
+	private PrintWriter m_writer;
+	private boolean m_isCommited = false;
+	private Locale m_locale = null;
+	private ByteArrayOutputStream m_outputStream = new ByteArrayOutputStream();
 	
 	@Override
 	public void flushBuffer() throws IOException {
 		// TODO Auto-generated method stub
-
+		m_isCommited = true;
 	}
 
 	@Override
@@ -34,14 +39,12 @@ public class MyHttpServletResponse implements HttpServletResponse {
 
 	@Override
 	public String getContentType() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_charset;
 	}
 
 	@Override
 	public Locale getLocale() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_locale;
 	}
 
 	@Override
@@ -52,14 +55,12 @@ public class MyHttpServletResponse implements HttpServletResponse {
 
 	@Override
 	public PrintWriter getWriter() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return m_writer;
 	}
 
 	@Override
 	public boolean isCommitted() {
-		// TODO Auto-generated method stub
-		return false;
+		return m_isCommited;
 	}
 
 	@Override
@@ -98,8 +99,7 @@ public class MyHttpServletResponse implements HttpServletResponse {
 
 	@Override
 	public void setLocale(Locale arg0) {
-		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
@@ -135,13 +135,13 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	@Override
 	public String encodeRedirectURL(String arg0) {
 		// TODO Auto-generated method stub
-		return null;
+		return null; 
 	}
 
 	@Override
 	public String encodeRedirectUrl(String arg0) {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // deprecated
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	@Override
 	public String encodeUrl(String arg0) {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // deprecated
 	}
 
 	@Override
