@@ -3,9 +3,11 @@ package edu.upenn.cis455.webserver.utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -21,10 +23,42 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	
 	private MyHttpSession m_session;
 	private String m_method;
-	private HashMap<String, String> m_headerMap;
+	private HashMap<String, Vector<String>> m_headerMap;
 	private HashMap<String, Object> m_attributes;
-	private HashMap<String, String> m_params;
+	private HashMap<String, Vector<String>> m_params;
 	private BufferedReader m_in;
+	private String m_charset = null;
+	private String m_serverName;
+	private int m_serverPort;
+	private String m_protocol;
+	private String m_contextPath;
+	private String m_servletPath;
+	private String m_pathInfo;
+	private String m_queryString;
+	private String m_requestURI;
+	private String m_requestURL;
+	
+	boolean hasSession() {
+		return ((m_session != null) && m_session.isValid());
+	}
+	
+	public MyHttpServletRequest(BufferedReader in, String method, HashMap<String, Vector<String>> headerMap, HashMap<String, Vector<String>> params, 
+			String name, int port, String protocol, String contextPath, String servletPath, String pathInfo, String queryString,
+			String requestURI, String requestURL) {
+		m_in = in;
+		m_method = method;
+		m_headerMap = headerMap;
+		m_params = params;
+		m_serverName = name;
+		m_serverPort = port;
+		m_protocol = protocol;
+		m_contextPath = contextPath;
+		m_servletPath = servletPath;
+		m_pathInfo = pathInfo;
+		m_queryString = queryString;
+		m_requestURI = requestURI;
+		m_requestURL = requestURL;
+	}
 	
 	@Override
 	public Object getAttribute(String name) {
@@ -40,18 +74,17 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getCharacterEncoding() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_charset;
 	}
 
 	@Override
 	public int getContentLength() {
-		return Integer.parseInt(m_headerMap.get("content-length"));
+		return Integer.parseInt(m_headerMap.get("content-length").get(0));
 	}
 
 	@Override
 	public String getContentType() {
-		return m_headerMap.get("content-type");
+		return m_headerMap.get("content-type").get(0);
 	}
 
 	@Override
@@ -68,14 +101,12 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getLocalName() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_serverName;
 	}
 
 	@Override
 	public int getLocalPort() {
-		// TODO Auto-generated method stub
-		return 0;
+		return m_serverPort;
 	}
 
 	@Override
@@ -87,12 +118,12 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public Enumeration getLocales() {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // return null
 	}
 
 	@Override
 	public String getParameter(String name) {
-		return m_params.get(name);
+		return m_params.get(name).get(0);
 	}
 
 	@Override
@@ -102,20 +133,19 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public Enumeration getParameterNames() {
-		// TODO Auto-generated method stub
-		return null;
+		Set<String> keys = m_params.keySet();
+		Vector<String> params = new Vector<String>(keys);
+		return params.elements();
 	}
 
 	@Override
-	public String[] getParameterValues(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public String[] getParameterValues(String name) {
+		return m_params.get(name).toArray(new String[0]);
 	}
 
 	@Override
 	public String getProtocol() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_protocol;
 	}
 
 	@Override
@@ -126,7 +156,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public String getRealPath(String arg0) {
 		// TODO Auto-generated method stub
-		return null;
+		return null; // deprecated
 	}
 
 	@Override
@@ -155,20 +185,17 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getScheme() {
-		// TODO Auto-generated method stub
-		return null;
+		return "http";
 	}
 
 	@Override
 	public String getServerName() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_serverName;
 	}
 
 	@Override
 	public int getServerPort() {
-		// TODO Auto-generated method stub
-		return 0;
+		return m_serverPort;
 	}
 
 	@Override
@@ -188,9 +215,8 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException {
-		// TODO Auto-generated method stub
-		
+	public void setCharacterEncoding(String charset) throws UnsupportedEncodingException {
+		m_charset = charset;
 	}
 
 	@Override
@@ -200,8 +226,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getContextPath() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_contextPath;
 	}
 
 	@Override
@@ -217,21 +242,20 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String getHeader(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getHeader(String name) {
+		return m_headerMap.get(name).get(0);
 	}
 
 	@Override
 	public Enumeration getHeaderNames() {
-		// TODO Auto-generated method stub
-		return null;
+		Set<String> keys = m_headerMap.keySet();
+		Vector<String> headerName = new Vector<String>(keys);
+		return headerName.elements();
 	}
 
 	@Override
-	public Enumeration getHeaders(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public Enumeration getHeaders(String name) {
+		return m_headerMap.get(name).elements();
 	}
 
 	@Override
@@ -242,14 +266,12 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getMethod() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_method;
 	}
 
 	@Override
 	public String getPathInfo() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_pathInfo;
 	}
 
 	@Override
@@ -260,8 +282,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getQueryString() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_queryString;
 	}
 
 	@Override
@@ -290,20 +311,26 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getServletPath() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_servletPath;
 	}
 
 	@Override
 	public HttpSession getSession() {
-		// TODO Auto-generated method stub
-		return null;
+		return getSession(true);
 	}
 
 	@Override
-	public HttpSession getSession(boolean arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public HttpSession getSession(boolean create) {
+		if (create) {
+			if (! hasSession()) {
+				m_session = new MyHttpSession();
+			}
+		} else {
+			if (! hasSession()) {
+				m_session = null;
+			}
+		}
+		return m_session;
 	}
 
 	@Override

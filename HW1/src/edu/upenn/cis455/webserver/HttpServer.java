@@ -40,9 +40,11 @@ public class HttpServer {
 			} else if (qName.compareTo("display-name") == 0) {
 				m_state = 5;
 			} else if (qName.compareTo("param-name") == 0) {
-				m_state = (m_state == 3) ? 10 : 20;
+				m_state = (m_state == 3) ? 10 : 20; // 20 is init params
 			} else if (qName.compareTo("param-value") == 0) {
-				m_state = (m_state == 10) ? 11 : 21;
+				m_state = (m_state == 10) ? 11 : 21; // 21 is init params
+			} else if (qName.compareTo("url-pattern") == 0) {
+				m_state = 12; 
 			}
 		}
 
@@ -81,15 +83,26 @@ public class HttpServer {
 				m_paramName = null;
 				m_state = 0;
 			}
+			else if (m_state == 12) {
+				if (m_servletName == null) {
+					System.err.println("Url pattern '" + value + "' without servlet name");
+					System.exit(-1);
+				}
+				// get servlet name by url
+				m_servletMapping.put(value, m_servletName);
+				m_servletName = null;
+				m_state = 0;
+			}
 		}
 
 		private int m_state = 0;
-		private String m_servletName;
-		private String m_paramName;
-		private String m_displayName;
-		HashMap<String, String> m_servlets = new HashMap<String, String>();
-		HashMap<String, String> m_contextParams = new HashMap<String, String>();
-		HashMap<String, HashMap<String, String>> m_servletParams = new HashMap<String, HashMap<String, String>>();
+		public String m_servletName;
+		public String m_paramName;
+		public String m_displayName;
+		public HashMap<String, String> m_servlets = new HashMap<String, String>();
+		public HashMap<String, String> m_contextParams = new HashMap<String, String>();
+		public HashMap<String, HashMap<String, String>> m_servletParams = new HashMap<String, HashMap<String, String>>();
+		public HashMap<String, String> m_servletMapping = new HashMap<String, String>();
 	}
 
 	private static HashMap<String, HttpServlet> createServlets(Handler h, MyServletContext c) throws Exception {
@@ -154,7 +167,7 @@ public class HttpServer {
 				threadPool.execute(task);
 			}
 		} catch (Exception e) {
-			// System.out.println("SHUTDOWN");
+			 System.out.println("Exception");
 		}
 
 	}

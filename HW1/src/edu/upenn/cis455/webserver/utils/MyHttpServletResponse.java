@@ -9,7 +9,11 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 public class MyHttpServletResponse implements HttpServletResponse {
-
+	private String m_contentType;
+	private int m_contentLength;
+	private int m_bufferSize;
+	private String m_charset;
+	
 	@Override
 	public void flushBuffer() throws IOException {
 		// TODO Auto-generated method stub
@@ -71,27 +75,25 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	}
 
 	@Override
-	public void setBufferSize(int arg0) {
+	public void setBufferSize(int size) {
 		// TODO Auto-generated method stub
-
+		m_bufferSize = size;
 	}
 
 	@Override
-	public void setCharacterEncoding(String arg0) {
-		// TODO Auto-generated method stub
-
+	public void setCharacterEncoding(String charset) {
+		m_charset = charset;
 	}
 
 	@Override
-	public void setContentLength(int arg0) {
-		// TODO Auto-generated method stub
-
+	public void setContentLength(int len) {
+		m_contentLength = len;
 	}
 
 	@Override
-	public void setContentType(String arg0) {
+	public void setContentType(String type) {
 		// TODO Auto-generated method stub
-
+		m_contentType = type;
 	}
 
 	@Override

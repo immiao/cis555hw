@@ -14,16 +14,21 @@ import javax.servlet.http.HttpSessionContext;
 
 public class MyHttpSession implements HttpSession {
 	
-	private HashMap<String, Object> attributes;
-	private String id;
+	private HashMap<String, Object> m_attributes;
+	private String m_id;
+	private boolean m_isValid;
+	
+	public boolean isValid() {
+		return m_isValid;
+	}
 	@Override
 	public Object getAttribute(String name) {
-		return attributes.get(name);
+		return m_attributes.get(name);
 	}
 
 	@Override
 	public Enumeration getAttributeNames() {
-		Set<String> keys = attributes.keySet();
+		Set<String> keys = m_attributes.keySet();
 		Vector<String> atts = new Vector<String>(keys);
 		return atts.elements();
 	}
@@ -45,7 +50,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public String getId() {
-		return id;
+		return m_id;
 	}
 
 	@Override
@@ -104,7 +109,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public void removeAttribute(String name) {
-		attributes.remove(name);
+		m_attributes.remove(name);
 	}
 
 	@Override
@@ -115,7 +120,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public void setAttribute(String name, Object value) {
-		attributes.put(name, value);
+		m_attributes.put(name, value);
 	}
 
 	@Override
