@@ -1,6 +1,9 @@
 package edu.upenn.cis455.webserver;
 
 import java.net.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 import javax.servlet.http.HttpServlet;
@@ -127,12 +130,15 @@ public class HttpServer {
 	
 	// servlet
 	public static HashMap<String, HttpServlet> m_servlets = null;
-
+	// session map
+	public static HashMap<String, MyHttpSession> m_sessionMap = new HashMap<String, MyHttpSession>();
+	
 	public static void main(String args[]) {
 		String rootDir = null;
 		String webXmlPath = null;
 		Handler h = null;
-
+		MyServletContext c = null;
+		
 		try {
 			if (args.length == 0) {
 				// System.out.println("***Author: Kaixiang Miao (miaok)");
@@ -153,16 +159,16 @@ public class HttpServer {
 				rootDir = args[1];
 				webXmlPath = args[2];
 				h = parseWebdotxml(webXmlPath);
-				MyServletContext c = new MyServletContext(h.m_contextParams, webXmlPath, h.m_displayName);
+				c = new MyServletContext(h.m_contextParams, webXmlPath, h.m_displayName);
 				m_servlets = createServlets(h, c);
 			}
-			
+
 			while (!isShutDown) {
 				Socket socket = serverSocket.accept();
 				// socket.
 				if (socket == null)
 					System.out.println("NULL");
-				HttpResponseRunnable task = new HttpResponseRunnable(socket, rootDir, h, m_servlets);
+				HttpResponseRunnable task = new HttpResponseRunnable(socket, rootDir, h, m_servlets, c);
 				threadPool.execute(task);
 			}
 		} catch (Exception e) {

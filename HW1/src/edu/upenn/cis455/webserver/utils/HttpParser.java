@@ -21,7 +21,9 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpSession;
 
 import edu.upenn.cis455.webserver.*;
 
@@ -63,7 +65,8 @@ public class HttpParser {
 	
 	// servlet
 	private HashMap<String, HttpServlet> m_servlets;
-
+	private MyServletContext m_servletContext;
+	
 	private boolean ParseInitialLine(String[] initialLine) {
 		if (initialLine.length != 3)
 			return false;
@@ -142,7 +145,7 @@ public class HttpParser {
 
 	// initialized function is executed in the main thread
 	public HttpParser(InputStream is, String rootDir, HttpServer.Handler h, String localAddr, int localPort,
-			String remoteAddr, int remotePort, HashMap<String, HttpServlet> servlet) {
+			String remoteAddr, int remotePort, HashMap<String, HttpServlet> servlet, MyServletContext context) {
 		this.is = is;
 		this.rootDir = rootDir;
 		this.m_handler = h;
@@ -151,6 +154,7 @@ public class HttpParser {
 		this.m_remoteAddr = remoteAddr;
 		this.m_remotePort = remotePort;
 		this.m_servlets = servlet;
+		this.m_servletContext = context;
 		
 		MyHttpServletResponse.status.put(100, "Continue");
 		MyHttpServletResponse.status.put(101, "Switching Protocols");
@@ -358,17 +362,42 @@ public class HttpParser {
 									}
 								} else {
 									if (servletName != null) {
-										
+										MyHttpSession reqSession = null;
+										for (String key : headerMap.keySet()) {
+											System.out.println(key + ": " + headerMap.get(key));
+										}
+										if (headerMap.containsKey("cookie")) {
+											String s = headerMap.get("cookie").get(0);
+											String[] cookies = s.split(";");
+											for (String ss : cookies) {
+												String[] nameValue = ss.split("=");
+												if (nameValue.length == 2 && nameValue[0].equals("session-id")) {
+													reqSession = HttpServer.m_sessionMap.get(nameValue[1]);
+												}
+												
+											}
+										}
 										MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap,
 												paramsMap, serverName, protocol, null, null, null,
-												query, uri.toString(), null, null, m_localAddr, m_localPort, m_remoteAddr, m_remotePort);
+												query, uri.toString(), null, null, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
+												m_servletContext, reqSession);
 										MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
 										resp.addDateHeader("Date", date.getTime());
 										resp.setStatus(200);
+										
 										HttpServlet s = m_servlets.get(servletName);
 										s.service(req, resp);
+										
+										// set up session id
+										MyHttpSession session = (MyHttpSession) req.getSession(false);
+										if (session != null) {
+											Cookie sessionCookie = new Cookie("session-id", session.getId());
+											resp.addCookie(sessionCookie);
+											HttpServer.m_sessionMap.put(session.getId(), session);
+										}
 										resp.flushBuffer();
 										return;
+										
 									} else if (file.isDirectory()) {
 										File[] files = file.listFiles();
 										String result = new String("*****This is a directory.*****\n\n");

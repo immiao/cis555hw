@@ -32,6 +32,8 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	private final String m_protocol = "HTTP/1.1";
 	private String m_dateKey = null;
 	private Date m_date = null;
+	private Vector<Cookie> Cookies = new Vector<Cookie>();
+	
 	public static HashMap<Integer, String> status = new HashMap<Integer, String>();
 	static SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
 	
@@ -111,7 +113,19 @@ public class MyHttpServletResponse implements HttpServletResponse {
 		for (String key : m_headerMap.keySet()) {
 			result += key + ": " + m_headerMap.get(key) + "\r\n";
 		}
-
+		// cookie
+		for (Cookie c : Cookies) {
+			result += "Set-Cookie: " + c.getName() + "=" + c.getValue();
+			if (c.getSecure())
+				result += "; Secure";
+			if (c.getMaxAge() != -1)
+				result += "; Max-Age=" + c.getMaxAge();
+			if (c.getDomain() != null)
+				result += "; Domain=" + c.getDomain();
+			if (c.getPath() != null)
+				result += "; Path=" + c.getPath();
+			result += "\r\n";
+		}
 		// additional blank line after header
 		result += "\r\n";
 		// body
@@ -206,9 +220,10 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	}
 
 	@Override
-	public void addCookie(Cookie arg0) {
+	public void addCookie(Cookie cookie) {
 		if (m_isCommited)
 			return;
+		Cookies.add(cookie);
 	}
 
 	@Override

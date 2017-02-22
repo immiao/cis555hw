@@ -14,9 +14,20 @@ import javax.servlet.http.HttpSessionContext;
 
 public class MyHttpSession implements HttpSession {
 	
-	private HashMap<String, Object> m_attributes;
+	private HashMap<String, Object> m_attributes = new HashMap<String, Object>();
 	private String m_id;
 	private boolean m_isValid;
+	private Date m_creationTime;
+	private Date m_lastAccessedTime;
+	private MyServletContext m_servletContext;
+	
+	public MyHttpSession(String id, MyServletContext context) {
+		m_id = id;
+		m_isValid = true;
+		m_creationTime = new Date();
+		m_lastAccessedTime = m_creationTime;
+		m_servletContext = context;
+	}
 	
 	public boolean isValid() {
 		return m_isValid;
@@ -35,17 +46,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public long getCreationTime() {
-		// TODO Auto-generated method stub
-		String stringDate = "1 Jan 1970, 00:00:00 GMT";
-		SimpleDateFormat f = new SimpleDateFormat("d MMM yyyy, hh:mm:ss z");
-		Date d = null;
-		try {
-		    d = f.parse(stringDate);
-		} catch (ParseException e) {
-		    e.printStackTrace();
-		}
-		Date crtDate = new Date();
-		return crtDate.getTime() - d.getTime();
+		return m_creationTime.getTime();
 	}
 
 	@Override
@@ -55,8 +56,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public long getLastAccessedTime() {
-		// TODO Auto-generated method stub
-		return 0;
+		return m_lastAccessedTime.getTime();
 	}
 
 	@Override
@@ -67,8 +67,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public ServletContext getServletContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_servletContext;
 	}
 
 	@Override
@@ -91,8 +90,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public void invalidate() {
-		// TODO Auto-generated method stub
-
+		m_isValid = false;
 	}
 
 	@Override

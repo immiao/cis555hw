@@ -13,11 +13,12 @@ public class HttpResponseRunnable implements Runnable{
 	private Socket m_socket;
 	private HttpParser m_httpParser;
 	
-	public HttpResponseRunnable(Socket socket, String rootDir, HttpServer.Handler h, HashMap<String, HttpServlet> servlet) {
+	public HttpResponseRunnable(Socket socket, String rootDir, HttpServer.Handler h, HashMap<String, HttpServlet> servlet,
+			MyServletContext context) {
 		m_socket = socket;
 		try {
 			m_httpParser = new HttpParser(socket.getInputStream(), rootDir, h, socket.getLocalAddress().toString(), 
-					socket.getLocalPort(), socket.getInetAddress().toString(), socket.getPort(), servlet);
+					socket.getLocalPort(), socket.getInetAddress().toString(), socket.getPort(), servlet, context);
 		} catch(Exception e) {
 			System.out.println(e.getMessage());
 		}

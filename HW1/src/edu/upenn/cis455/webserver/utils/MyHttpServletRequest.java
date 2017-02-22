@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.Vector;
 
 import javax.servlet.RequestDispatcher;
@@ -20,8 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 public class MyHttpServletRequest implements HttpServletRequest {
-	
-	private MyHttpSession m_session;
+
+	private MyHttpSession m_session = null;
 	private String m_method;
 	private HashMap<String, Vector<String>> m_headerMap;
 	private HashMap<String, Object> m_attributes;
@@ -41,15 +42,20 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	private int m_localPort;
 	private String m_remoteAddr;
 	private int m_remotePort;
-	
+	private Vector<Cookie> m_cookies = new Vector<Cookie>();
+
+	private MyServletContext m_servletContext;
 	boolean hasSession() {
 		return ((m_session != null) && m_session.isValid());
 	}
-	
-	public MyHttpServletRequest(BufferedReader in, String method, HashMap<String, Vector<String>> headerMap, HashMap<String, Vector<String>> params, 
-			String name, String protocol, String contextPath, String servletPath, String pathInfo, String queryString,
-			String requestURI, String requestURL, Locale locale, String localAddr, int localPort, String remoteAddr, int remotePort) {
+
+	public MyHttpServletRequest(BufferedReader in, String method, HashMap<String, Vector<String>> headerMap,
+			HashMap<String, Vector<String>> params, String name, String protocol, String contextPath,
+			String servletPath, String pathInfo, String queryString, String requestURI, String requestURL,
+			Locale locale, String localAddr, int localPort, String remoteAddr, int remotePort, MyServletContext context,
+			MyHttpSession session) {
 		m_in = in;
+
 		m_method = method;
 		m_headerMap = headerMap;
 		m_params = params;
@@ -66,8 +72,26 @@ public class MyHttpServletRequest implements HttpServletRequest {
 		m_localPort = localPort;
 		m_remoteAddr = remoteAddr;
 		m_remotePort = remotePort;
+
+		m_servletContext = context;
+		m_session = session;
+		
+		for (String key : headerMap.keySet()) {
+			if (key.equals("cookie")) {
+				Vector<String> value = headerMap.get(key);
+				for (String s : value) {
+					//System.out.println(s);
+					String[] pair = s.split(";");
+					for (String p : pair) {
+						String[] nameValue = p.split("=");
+						Cookie cookie = new Cookie(nameValue[0], nameValue[1]);
+						m_cookies.add(cookie);
+					}
+				}
+			}
+		}
 	}
-	
+
 	@Override
 	public Object getAttribute(String name) {
 		return m_attributes.get(name);
@@ -235,8 +259,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public Cookie[] getCookies() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_cookies.toArray(new Cookie[0]);
 	}
 
 	@Override
@@ -326,11 +349,11 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	@Override
 	public HttpSession getSession(boolean create) {
 		if (create) {
-			if (! hasSession()) {
-				m_session = new MyHttpSession();
+			if (!hasSession()) {
+				m_session = new MyHttpSession(UUID.randomUUID().toString(), m_servletContext);
 			}
 		} else {
-			if (! hasSession()) {
+			if (!hasSession()) {
 				m_session = null;
 			}
 		}
