@@ -3,6 +3,7 @@ package edu.upenn.cis455.webserver.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpSession;
@@ -67,7 +69,7 @@ public class HttpParser {
 	private HashMap<String, HttpServlet> m_servlets;
 	private MyServletContext m_servletContext;
 
-	private boolean ParseInitialLine(String[] initialLine) {
+	private boolean ParseInitialLine(String[] initialLine) throws IOException {
 		if (initialLine.length != 3)
 			return false;
 		method = initialLine[0];
@@ -89,6 +91,10 @@ public class HttpParser {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			FileWriter fw = new FileWriter("log.txt", true);
+			PrintWriter pw = new PrintWriter(fw);
+			e.printStackTrace(pw);
+			pw.close();
 		}
 		dir = uri.getPath();
 		query = uri.getQuery();
@@ -119,7 +125,7 @@ public class HttpParser {
 		return true;
 	}
 
-	private boolean ParseHeader(BufferedReader in) {
+	private boolean ParseHeader(BufferedReader in) throws IOException {
 		try {
 			String line = in.readLine();
 			while (!line.isEmpty()) {
@@ -139,7 +145,40 @@ public class HttpParser {
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
+			FileWriter fw = new FileWriter("log.txt", true);
+			PrintWriter pw = new PrintWriter(fw);
+			e.printStackTrace(pw);
+			pw.close();
 			return false;
+		}
+	}
+
+	private void ParseBody(BufferedReader in) throws IOException {
+		try {
+			char[] buf = new char[8192];
+			in.read(buf);
+			String body = new String(buf).trim(); // use trim() to reduce the size
+			//System.out.println("BODYLENGTH:" + body.length());
+			String[] pairs = body.split("&");
+			for (String s : pairs) {
+				String[] nameValue = s.split("=");
+				if (nameValue.length != 2)
+					continue;
+				else if (paramsMap.containsKey(nameValue[0])) {
+					paramsMap.get(nameValue[0]).add(nameValue[1]);
+				} else {
+					Vector<String> v = new Vector<String>();
+					v.add(nameValue[1]);
+					paramsMap.put(nameValue[0], v);
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			FileWriter fw = new FileWriter("log.txt", true);
+			PrintWriter pw = new PrintWriter(fw);
+			e.printStackTrace(pw);
+			pw.close();
 		}
 	}
 
@@ -295,28 +334,16 @@ public class HttpParser {
 					File file = new File(path);
 
 					headerByte = "\r\n".getBytes();
-					if (method.equals("GET")) {
+
+					if (!ParseHeader(in)) {
+						initialLineByte = http10error400;
+					} else if (method.equals("GET")) {
 						initialLineByte = http10ok200;
 						if (dir.equals("/shutdown")) {
 							HttpServer.shutdown();
 						} else if (dir.equals("/control")) {
-							if (servletName == null) {
-								String result = new String("<html><body><b>Author: Kaixiang Miao (miaok)<\b>\n\n");
-								String[] threadState = HttpServer.threadPool.getstates();
-
-								int i = 0;
-								for (String s : threadState) {
-									result += "<p>Thread " + i + ":" + s + "</p>\n";
-									i++;
-								}
-								result += "<form action=\"http://localhost:" + HttpServer.port
-										+ "/shutdown\"><input type=\"submit\" value=\"Shut Down\" /></form>";
-								result += "</body></html>";
-								bodyByte = result.getBytes();
-							} else {
-								// output error log
-							}
-
+							String result = new String(Files.readAllBytes(Paths.get("log.txt")));
+							bodyByte = result.getBytes();
 						} else {
 							if (servletName != null) {
 								runServlet(in, os, null, servletName);
@@ -347,6 +374,7 @@ public class HttpParser {
 						initialLineByte = http10ok200;
 					} else if (method.equals("POST")) {
 						if (servletName != null) {
+							ParseBody(in);
 							runServlet(in, os, null, servletName);
 							return;
 						}
@@ -387,22 +415,28 @@ public class HttpParser {
 								if (dir.equals("/shutdown")) {
 									HttpServer.shutdown();
 								} else if (dir.equals("/control")) {
-									if (servletName == null) {
-										String result = new String(
-												"<html><body><p><b>Author: Kaixiang Miao (miaok)</b></p>\n\n");
-										String[] threadState = HttpServer.threadPool.getstates();
 
-										int i = 0;
-										for (String s : threadState) {
-											result += "<p>Thread " + i + ":" + s + "</p>\n";
-											i++;
-										}
-										result += "<a href=\"/shutdown\"><button>Shut Down</button></a>";
-										result += "</body></html>";
-										bodyByte = result.getBytes();
-									} else {
+									// String result = new String(
+									// "<html><body><p><b>Author: Kaixiang Miao
+									// (miaok)</b></p>\n\n");
+									// String[] threadState =
+									// HttpServer.threadPool.getstates();
+									//
+									// int i = 0;
+									// for (String s : threadState) {
+									// result += "<p>Thread " + i + ":" + s +
+									// "</p>\n";
+									// i++;
+									// }
+									// result += "<a
+									// href=\"/shutdown\"><button>Shut
+									// Down</button></a>";
+									// result += "</body></html>";
+									// bodyByte = result.getBytes();
 
-									}
+									String result = new String(Files.readAllBytes(Paths.get("log.txt")));
+									bodyByte = result.getBytes();
+
 								} else {
 									if (servletName != null) {
 										runServlet(in, os, date, servletName);
@@ -473,6 +507,7 @@ public class HttpParser {
 								initialLineByte = http11ok200;
 							} else if (method.equals("POST")) {
 								if (servletName != null) {
+									ParseBody(in);
 									runServlet(in, os, date, servletName);
 									return;
 								}
@@ -488,10 +523,24 @@ public class HttpParser {
 				}
 			}
 
+		} catch (ServletException e) {
+			initialLineByte = (protocol + " 500 Internal Server Error\r\n").getBytes();
+			headerByte = "\r\n".getBytes();
+			e.printStackTrace();
+			FileWriter fw = new FileWriter("log.txt", true);
+			PrintWriter pw = new PrintWriter(fw);
+			e.printStackTrace(pw);
+			pw.close();
 		} catch (Exception e) {
+
 			initialLineByte = (protocol + " 404 Not Found\r\n").getBytes();
 			headerByte = "\r\n".getBytes();
 			e.printStackTrace();
+			FileWriter fw = new FileWriter("log.txt", true);
+			PrintWriter pw = new PrintWriter(fw);
+			e.printStackTrace(pw);
+			pw.close();
+
 		}
 		int initialLineLength = 0;
 		int headerLength = 0;

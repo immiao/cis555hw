@@ -162,7 +162,8 @@ public class HttpServer {
 				c = new MyServletContext(h.m_contextParams, webXmlPath, h.m_displayName);
 				m_servlets = createServlets(h, c);
 			}
-
+//			BufferedReader b = new BufferedReader(new FileReader("ttt.txt"));
+//			String s = b.readLine();
 			while (!isShutDown) {
 				Socket socket = serverSocket.accept();
 				// socket.

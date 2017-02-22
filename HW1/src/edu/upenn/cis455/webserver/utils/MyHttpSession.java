@@ -20,6 +20,7 @@ public class MyHttpSession implements HttpSession {
 	private Date m_creationTime;
 	private Date m_lastAccessedTime;
 	private MyServletContext m_servletContext;
+	private int m_maxInactiveInterval = -1;
 	
 	public MyHttpSession(String id, MyServletContext context) {
 		m_id = id;
@@ -27,6 +28,12 @@ public class MyHttpSession implements HttpSession {
 		m_creationTime = new Date();
 		m_lastAccessedTime = m_creationTime;
 		m_servletContext = context;
+	}
+	
+	public void access() {
+		m_lastAccessedTime = new Date();
+		if (m_maxInactiveInterval != -1 && m_lastAccessedTime.getTime() - m_creationTime.getTime() > m_maxInactiveInterval)
+			m_isValid = false;
 	}
 	
 	public boolean isValid() {
@@ -61,8 +68,7 @@ public class MyHttpSession implements HttpSession {
 
 	@Override
 	public int getMaxInactiveInterval() {
-		// TODO Auto-generated method stub
-		return 0;
+		return m_maxInactiveInterval;
 	}
 
 	@Override
@@ -122,9 +128,8 @@ public class MyHttpSession implements HttpSession {
 	}
 
 	@Override
-	public void setMaxInactiveInterval(int arg0) {
-		// TODO Auto-generated method stub
-
+	public void setMaxInactiveInterval(int interval) {
+		m_maxInactiveInterval = interval;
 	}
 
 }
