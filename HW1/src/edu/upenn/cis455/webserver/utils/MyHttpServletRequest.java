@@ -84,7 +84,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 					String[] pair = s.split(";");
 					for (String p : pair) {
 						String[] nameValue = p.split("=");
-						Cookie cookie = new Cookie(nameValue[0], nameValue[1]);
+						Cookie cookie = new Cookie(nameValue[0].trim(), nameValue[1]);
 						m_cookies.add(cookie);
 					}
 				}

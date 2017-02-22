@@ -371,7 +371,7 @@ public class HttpParser {
 											String[] cookies = s.split(";");
 											for (String ss : cookies) {
 												String[] nameValue = ss.split("=");
-												if (nameValue.length == 2 && nameValue[0].equals("session-id")) {
+												if (nameValue.length == 2 && nameValue[0].equals("jsession-id")) {
 													reqSession = HttpServer.m_sessionMap.get(nameValue[1]);
 												}
 												
@@ -391,7 +391,7 @@ public class HttpParser {
 										// set up session id
 										MyHttpSession session = (MyHttpSession) req.getSession(false);
 										if (session != null) {
-											Cookie sessionCookie = new Cookie("session-id", session.getId());
+											Cookie sessionCookie = new Cookie("jsession-id", session.getId());
 											resp.addCookie(sessionCookie);
 											HttpServer.m_sessionMap.put(session.getId(), session);
 										}
@@ -478,6 +478,7 @@ public class HttpParser {
 		} catch (Exception e) {
 			initialLineByte = (protocol + " 404 Not Found\r\n").getBytes();
 			headerByte = "\r\n".getBytes();
+			e.printStackTrace();
 		}
 		int initialLineLength = 0;
 		int headerLength = 0;
