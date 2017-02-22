@@ -162,8 +162,7 @@ public class HttpServer {
 				// socket.
 				if (socket == null)
 					System.out.println("NULL");
-				HttpResponseRunnable task = new HttpResponseRunnable(socket, rootDir, h);
-
+				HttpResponseRunnable task = new HttpResponseRunnable(socket, rootDir, h, m_servlets);
 				threadPool.execute(task);
 			}
 		} catch (Exception e) {

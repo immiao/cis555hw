@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import javax.servlet.http.HttpServlet;
+
 import edu.upenn.cis455.webserver.*;
 
 public class HttpParser {
@@ -58,6 +60,9 @@ public class HttpParser {
 	private int m_localPort;
 	private String m_remoteAddr;
 	private int m_remotePort;
+	
+	// servlet
+	private HashMap<String, HttpServlet> m_servlets;
 
 	private boolean ParseInitialLine(String[] initialLine) {
 		if (initialLine.length != 3)
@@ -137,7 +142,7 @@ public class HttpParser {
 
 	// initialized function is executed in the main thread
 	public HttpParser(InputStream is, String rootDir, HttpServer.Handler h, String localAddr, int localPort,
-			String remoteAddr, int remotePort) {
+			String remoteAddr, int remotePort, HashMap<String, HttpServlet> servlet) {
 		this.is = is;
 		this.rootDir = rootDir;
 		this.m_handler = h;
@@ -145,6 +150,50 @@ public class HttpParser {
 		this.m_localPort = localPort;
 		this.m_remoteAddr = remoteAddr;
 		this.m_remotePort = remotePort;
+		this.m_servlets = servlet;
+		
+		MyHttpServletResponse.status.put(100, "Continue");
+		MyHttpServletResponse.status.put(101, "Switching Protocols");
+		MyHttpServletResponse.status.put(200, "OK");
+		MyHttpServletResponse.status.put(201, "Created");
+		MyHttpServletResponse.status.put(202, "Accepted");
+		MyHttpServletResponse.status.put(203, "Non-Authoritative Information");
+		MyHttpServletResponse.status.put(204, "No Content");
+		MyHttpServletResponse.status.put(205, "Reset Content");
+		MyHttpServletResponse.status.put(206, "Partial Content");
+		MyHttpServletResponse.status.put(300, "Multiple Choices");
+		MyHttpServletResponse.status.put(301, "Moved Permanently");
+		MyHttpServletResponse.status.put(302, "Found");
+		MyHttpServletResponse.status.put(303, "See Other");
+		MyHttpServletResponse.status.put(304, "Not Modified");
+		MyHttpServletResponse.status.put(305, "Use Proxy");
+		MyHttpServletResponse.status.put(307, "Temporary Redirect");
+		MyHttpServletResponse.status.put(400, "Bad Request");
+		MyHttpServletResponse.status.put(401, "Unauthorized");
+		MyHttpServletResponse.status.put(402, "Payment Required");
+		MyHttpServletResponse.status.put(403, "Forbidden");
+		MyHttpServletResponse.status.put(404, "Not Found");
+		MyHttpServletResponse.status.put(405, "Method Not Allowed");
+		MyHttpServletResponse.status.put(406, "Not Acceptable");
+		MyHttpServletResponse.status.put(407, "Proxy Authentication Required");
+		MyHttpServletResponse.status.put(408, "Request Timeout");
+		MyHttpServletResponse.status.put(409, "Conflict");
+		MyHttpServletResponse.status.put(410, "Gone");
+		MyHttpServletResponse.status.put(411, "Length Required");
+		MyHttpServletResponse.status.put(412, "Precondition Failed");
+		MyHttpServletResponse.status.put(413, "Request Entity Too Large");
+		MyHttpServletResponse.status.put(414, "Request-URI Too Long");
+		MyHttpServletResponse.status.put(415, "Unsupported Media Type");
+		MyHttpServletResponse.status.put(416, "Requested Range Not Satisfiable");
+		MyHttpServletResponse.status.put(417, "Expectation Failed");		
+		MyHttpServletResponse.status.put(500, "Internal Server Error");
+		MyHttpServletResponse.status.put(501, "Not Implemented");
+		MyHttpServletResponse.status.put(502, "Bad Gateway");
+		MyHttpServletResponse.status.put(503, "Service Unavailable");
+		MyHttpServletResponse.status.put(504, "Gateway Timeout");
+		MyHttpServletResponse.status.put(505, "HTTP Version Not Supported");
+		
+		MyHttpServletResponse.format.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}
 
 	public String GetExtensionHeader(String path) {
@@ -309,12 +358,17 @@ public class HttpParser {
 									}
 								} else {
 									if (servletName != null) {
-
+										
 										MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap,
 												paramsMap, serverName, protocol, null, null, null,
 												query, uri.toString(), null, null, m_localAddr, m_localPort, m_remoteAddr, m_remotePort);
-										MyHttpServletResponse resp;
-										
+										MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
+										resp.addDateHeader("Date", date.getTime());
+										resp.setStatus(200);
+										HttpServlet s = m_servlets.get(servletName);
+										s.service(req, resp);
+										resp.flushBuffer();
+										return;
 									} else if (file.isDirectory()) {
 										File[] files = file.listFiles();
 										String result = new String("*****This is a directory.*****\n\n");

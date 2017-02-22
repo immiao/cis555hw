@@ -6,8 +6,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.servlet.ServletOutputStream;
@@ -16,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class MyHttpServletResponse implements HttpServletResponse {
 	private String m_contentType = "text/html";
-	private int m_contentLength;
+	private int m_contentLength = -1;
 	private int m_bufferSize;
 	private String m_charset = "ISO-8859-1";
 	private PrintWriter m_writer;
@@ -24,17 +27,23 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	private Locale m_locale = null;
 	private OutputBuffer m_outputBuffer;
 	private OutputStream m_os;
-	private HashMap<String, Vector<Object>> m_headerMap = new HashMap<String, Vector<Object>>();
+	private HashMap<String, Object> m_headerMap = new HashMap<String, Object>();
+	private int m_statusCode;
+	private final String m_protocol = "HTTP/1.1";
+	private String m_dateKey = null;
+	private Date m_date = null;
+	public static HashMap<Integer, String> status = new HashMap<Integer, String>();
+	static SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
 	
 	class OutputBuffer extends Writer {
 		
 		private char[] buf;
 		private int charsWritten = 0;
-		private OutputStream os;
 		private MyHttpServletResponse resp;
 		
-		public OutputBuffer(int size) {
+		public OutputBuffer(int size, MyHttpServletResponse resp) {
 			buf = new char[size];
+			this.resp = resp;
 		}
 		
 		@Override
@@ -46,6 +55,7 @@ public class MyHttpServletResponse implements HttpServletResponse {
 			if (len > remain)
 				flush();
 			System.arraycopy(cbuf, off, buf, charsWritten, len);
+			charsWritten += len;
 		}
 
 		@Override
@@ -59,6 +69,10 @@ public class MyHttpServletResponse implements HttpServletResponse {
 			resp.flushBuffer();
 		}
 		
+		public String getString() {
+			return new String(buf, 0, charsWritten);
+		}
+		
 		public byte[] getByteBuf() {
 			return new String(buf, 0, charsWritten).getBytes();
 		}
@@ -69,16 +83,43 @@ public class MyHttpServletResponse implements HttpServletResponse {
 		
 	}
 	
-	public MyHttpServletResponse(OutputStream os) {
-		
+	public MyHttpServletResponse(OutputStream os, int size) {
+		m_os = os;
+		m_outputBuffer = new OutputBuffer(size, this);
 		m_writer = new PrintWriter(m_outputBuffer);
 	}
 	
 	@Override
 	public void flushBuffer() throws IOException {
 		// TODO Auto-generated method stub
+		if (m_isCommited)
+			return;
 		m_isCommited = true;
+		String result = new String();
 		
+		// initial line
+		result += m_protocol + " " + m_statusCode + " " + status.get(m_statusCode) + "\r\n";
+		
+		// special header
+		result += "Content-Type: " + m_contentType + "\r\n";
+		if (m_contentLength != -1)
+			result += "Content-Length: " + m_contentLength + "\r\n";
+		if (m_dateKey != null)
+			result += m_dateKey + ": " + format.format(m_date) + "\r\n";
+		
+		// header map
+		for (String key : m_headerMap.keySet()) {
+			result += key + ": " + m_headerMap.get(key) + "\r\n";
+		}
+
+		// additional blank line after header
+		result += "\r\n";
+		// body
+		result += m_outputBuffer.getString();
+		
+		System.out.print(result);
+		m_os.write(result.getBytes(), 0, result.getBytes().length);
+		resetBuffer();
 	}
 
 	@Override
@@ -174,18 +215,22 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	public void addDateHeader(String key, long value) {
 		if (m_isCommited)
 			return;
+		m_dateKey = key;
+		m_date = new Date(value);
 	}
 
 	@Override
 	public void addHeader(String key, String value) {
 		if (m_isCommited)
 			return;
+		m_headerMap.put(key, value);
 	}
 
 	@Override
 	public void addIntHeader(String key, int value) {
 		if (m_isCommited)
 			return;
+		m_headerMap.put(key, value);
 	}
 
 	@Override
@@ -236,33 +281,37 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	}
 
 	@Override
-	public void setDateHeader(String arg0, long arg1) {
-		// TODO Auto-generated method stub
-
+	public void setDateHeader(String key, long value) {
+		if (m_isCommited)
+			return;
+		m_headerMap.put(key, value);
 	}
 
 	@Override
-	public void setHeader(String arg0, String arg1) {
-		// TODO Auto-generated method stub
-
+	public void setHeader(String key, String value) {
+		if (m_isCommited)
+			return;
+		m_headerMap.put(key, value);
 	}
 
 	@Override
-	public void setIntHeader(String arg0, int arg1) {
-		// TODO Auto-generated method stub
-
+	public void setIntHeader(String key, int value) {
+		if (m_isCommited)
+			return;
+		m_headerMap.put(key, value);
 	}
 
 	@Override
-	public void setStatus(int arg0) {
-		// TODO Auto-generated method stub
-
+	public void setStatus(int code) {
+		if (m_isCommited)
+			return;
+		m_statusCode = code;
 	}
 
 	@Override
 	public void setStatus(int arg0, String arg1) {
-		// TODO Auto-generated method stub
-
+		if (m_isCommited)
+			return; // deprecated
 	}
 
 }

@@ -3,6 +3,9 @@ package edu.upenn.cis455.webserver.utils;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.HashMap;
+
+import javax.servlet.http.HttpServlet;
 
 import edu.upenn.cis455.webserver.HttpServer;
 
@@ -10,13 +13,13 @@ public class HttpResponseRunnable implements Runnable{
 	private Socket m_socket;
 	private HttpParser m_httpParser;
 	
-	public HttpResponseRunnable(Socket socket, String rootDir, HttpServer.Handler h) {
+	public HttpResponseRunnable(Socket socket, String rootDir, HttpServer.Handler h, HashMap<String, HttpServlet> servlet) {
 		m_socket = socket;
 		try {
 			m_httpParser = new HttpParser(socket.getInputStream(), rootDir, h, socket.getLocalAddress().toString(), 
-					socket.getLocalPort(), socket.getRemoteSocketAddress().toString(), socket.getPort());
+					socket.getLocalPort(), socket.getInetAddress().toString(), socket.getPort(), servlet);
 		} catch(Exception e) {
-			//System.out.println(e.getMessage());
+			System.out.println(e.getMessage());
 		}
 	}
 	
@@ -31,7 +34,7 @@ public class HttpResponseRunnable implements Runnable{
 		} catch (SocketTimeoutException e) {
 			//System.out.println("TIMEOUT");
 		} catch(Exception e) {
-			//System.out.println(e.getMessage());
+			System.out.println(e.getMessage());
 		}
 		
 		try {
