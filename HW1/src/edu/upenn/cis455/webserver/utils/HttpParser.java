@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.Vector;
@@ -154,11 +155,15 @@ public class HttpParser {
 	}
 
 	private void ParseBody(BufferedReader in) throws IOException {
+		// judge if there's body
+		if (headerMap.get("content-length").get(0).equals("0"))
+			return;
 		try {
 			char[] buf = new char[8192];
 			in.read(buf);
 			String body = new String(buf).trim(); // use trim() to reduce the size
-			//System.out.println("BODYLENGTH:" + body.length());
+			
+			// get the parameters from the body
 			String[] pairs = body.split("&");
 			for (String s : pairs) {
 				String[] nameValue = s.split("=");
@@ -195,6 +200,7 @@ public class HttpParser {
 		this.m_servlets = servlet;
 		this.m_servletContext = context;
 
+		// establish static status code & message map
 		MyHttpServletResponse.status.put(100, "Continue");
 		MyHttpServletResponse.status.put(101, "Switching Protocols");
 		MyHttpServletResponse.status.put(200, "OK");
@@ -272,8 +278,13 @@ public class HttpParser {
 
 			}
 		}
+		
+		// get the host name
+		String hostName = headerMap.get("host").get(0);
+		String url = "http://" + hostName;
+		
 		MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap, paramsMap, serverName, protocol,
-				null, null, null, query, uri.toString(), null, null, m_localAddr, m_localPort, m_remoteAddr,
+				null, null, null, query, dir, url, m_localAddr, m_localPort, m_remoteAddr,
 				m_remotePort, m_servletContext, reqSession);
 		MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
 		if (date != null)
@@ -291,6 +302,7 @@ public class HttpParser {
 			resp.addCookie(sessionCookie);
 			HttpServer.m_sessionMap.put(session.getId(), session);
 		}
+		
 		resp.flushBuffer();
 	}
 

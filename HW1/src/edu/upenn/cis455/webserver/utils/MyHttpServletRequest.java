@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.Principal;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -36,14 +37,18 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	private String m_pathInfo;
 	private String m_queryString;
 	private String m_requestURI;
-	private String m_requestURL;
-	private Locale m_locale;
+	private StringBuffer m_requestURL;
+	private Locale m_locale = null;
 	private String m_localAddr;
 	private int m_localPort;
 	private String m_remoteAddr;
 	private int m_remotePort;
 	private Vector<Cookie> m_cookies = new Vector<Cookie>();
 
+	// date
+	private String m_dateKey = null;
+	private Date m_dateValue = null;
+	
 	private MyServletContext m_servletContext;
 	boolean hasSession() {
 		return ((m_session != null) && m_session.isValid());
@@ -51,8 +56,8 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	public MyHttpServletRequest(BufferedReader in, String method, HashMap<String, Vector<String>> headerMap,
 			HashMap<String, Vector<String>> params, String name, String protocol, String contextPath,
-			String servletPath, String pathInfo, String queryString, String requestURI, String requestURL,
-			Locale locale, String localAddr, int localPort, String remoteAddr, int remotePort, MyServletContext context,
+			String servletPath, String pathInfo, String queryString, String requestURI, String requestURL, 
+			String localAddr, int localPort, String remoteAddr, int remotePort, MyServletContext context,
 			MyHttpSession session) {
 		m_in = in;
 
@@ -66,8 +71,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 		m_pathInfo = pathInfo;
 		m_queryString = queryString;
 		m_requestURI = requestURI;
-		m_requestURL = requestURL;
-		m_locale = locale;
+		m_requestURL = new StringBuffer(requestURL);
 		m_localAddr = localAddr;
 		m_localPort = localPort;
 		m_remoteAddr = remoteAddr;
@@ -263,8 +267,9 @@ public class MyHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public long getDateHeader(String arg0) {
-		// TODO Auto-generated method stub
+	public long getDateHeader(String key) {
+		if (m_dateKey != null && m_dateKey.equals(key))
+			return m_dateValue.getTime();
 		return 0;
 	}
 
@@ -282,13 +287,16 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public Enumeration getHeaders(String name) {
-		return m_headerMap.get(name).elements();
+		if (m_headerMap.containsKey(name))
+			return m_headerMap.get(name).elements();
+		return null;
 	}
 
 	@Override
-	public int getIntHeader(String arg0) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getIntHeader(String name) {
+		if (m_headerMap.containsKey(name))
+			return Integer.parseInt(m_headerMap.get(name).get(0));
+		return -1;
 	}
 
 	@Override
@@ -320,19 +328,18 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getRequestURI() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_requestURI;
 	}
 
 	@Override
 	public StringBuffer getRequestURL() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_requestURL;
 	}
 
 	@Override
 	public String getRequestedSessionId() {
-		// TODO Auto-generated method stub
+		if (m_headerMap.containsKey("jsession-id"))
+			return m_headerMap.get("jsession-id").get(0);
 		return null;
 	}
 
@@ -368,8 +375,7 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public boolean isRequestedSessionIdFromCookie() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -380,14 +386,14 @@ public class MyHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public boolean isRequestedSessionIdFromUrl() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean isRequestedSessionIdValid() {
-		// TODO Auto-generated method stub
-		return false;
+		if (getSession(false) == null)
+			return false;
+		return true;
 	}
 
 	@Override
