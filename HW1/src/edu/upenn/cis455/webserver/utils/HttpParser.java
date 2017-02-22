@@ -62,11 +62,11 @@ public class HttpParser {
 	private int m_localPort;
 	private String m_remoteAddr;
 	private int m_remotePort;
-	
+
 	// servlet
 	private HashMap<String, HttpServlet> m_servlets;
 	private MyServletContext m_servletContext;
-	
+
 	private boolean ParseInitialLine(String[] initialLine) {
 		if (initialLine.length != 3)
 			return false;
@@ -155,7 +155,7 @@ public class HttpParser {
 		this.m_remotePort = remotePort;
 		this.m_servlets = servlet;
 		this.m_servletContext = context;
-		
+
 		MyHttpServletResponse.status.put(100, "Continue");
 		MyHttpServletResponse.status.put(101, "Switching Protocols");
 		MyHttpServletResponse.status.put(200, "OK");
@@ -189,14 +189,14 @@ public class HttpParser {
 		MyHttpServletResponse.status.put(414, "Request-URI Too Long");
 		MyHttpServletResponse.status.put(415, "Unsupported Media Type");
 		MyHttpServletResponse.status.put(416, "Requested Range Not Satisfiable");
-		MyHttpServletResponse.status.put(417, "Expectation Failed");		
+		MyHttpServletResponse.status.put(417, "Expectation Failed");
 		MyHttpServletResponse.status.put(500, "Internal Server Error");
 		MyHttpServletResponse.status.put(501, "Not Implemented");
 		MyHttpServletResponse.status.put(502, "Bad Gateway");
 		MyHttpServletResponse.status.put(503, "Service Unavailable");
 		MyHttpServletResponse.status.put(504, "Gateway Timeout");
 		MyHttpServletResponse.status.put(505, "HTTP Version Not Supported");
-		
+
 		MyHttpServletResponse.format.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}
 
@@ -215,6 +215,44 @@ public class HttpParser {
 		else if (ext.equals("html"))
 			header += "Content-Type : text/html";
 		return header;
+	}
+
+	private void runServlet(BufferedReader in, OutputStream os, Date date, String servletName) throws Exception {
+		MyHttpSession reqSession = null;
+		for (String key : headerMap.keySet()) {
+			System.out.println(key + ": " + headerMap.get(key));
+		}
+		if (headerMap.containsKey("cookie")) {
+			String s = headerMap.get("cookie").get(0);
+			String[] cookies = s.split(";");
+			for (String ss : cookies) {
+				String[] nameValue = ss.split("=");
+				if (nameValue.length == 2 && nameValue[0].equals("jsession-id")) {
+					reqSession = HttpServer.m_sessionMap.get(nameValue[1]);
+				}
+
+			}
+		}
+		MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap, paramsMap, serverName, protocol,
+				null, null, null, query, uri.toString(), null, null, m_localAddr, m_localPort, m_remoteAddr,
+				m_remotePort, m_servletContext, reqSession);
+		MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
+		if (date != null)
+			resp.addDateHeader("Date", date.getTime());
+		resp.setStatus(200);
+
+		HttpServlet s = m_servlets.get(servletName);
+
+		s.service(req, resp);
+
+		// set up session id
+		MyHttpSession session = (MyHttpSession) req.getSession(false);
+		if (session != null) {
+			Cookie sessionCookie = new Cookie("jsession-id", session.getId());
+			resp.addCookie(sessionCookie);
+			HttpServer.m_sessionMap.put(session.getId(), session);
+		}
+		resp.flushBuffer();
 	}
 
 	public void GetResult(OutputStream os) throws IOException {
@@ -281,7 +319,8 @@ public class HttpParser {
 
 						} else {
 							if (servletName != null) {
-
+								runServlet(in, os, null, servletName);
+								return;
 							} else if (file.isDirectory()) {
 								File[] files = file.listFiles();
 								String result = new String("*****This is a directory.*****\n\n");
@@ -307,6 +346,10 @@ public class HttpParser {
 						FileInputStream fis = new FileInputStream(file);
 						initialLineByte = http10ok200;
 					} else if (method.equals("POST")) {
+						if (servletName != null) {
+							runServlet(in, os, null, servletName);
+							return;
+						}
 						initialLineByte = http10error501;
 					} else
 						initialLineByte = http10error400;
@@ -362,42 +405,8 @@ public class HttpParser {
 									}
 								} else {
 									if (servletName != null) {
-										MyHttpSession reqSession = null;
-										for (String key : headerMap.keySet()) {
-											System.out.println(key + ": " + headerMap.get(key));
-										}
-										if (headerMap.containsKey("cookie")) {
-											String s = headerMap.get("cookie").get(0);
-											String[] cookies = s.split(";");
-											for (String ss : cookies) {
-												String[] nameValue = ss.split("=");
-												if (nameValue.length == 2 && nameValue[0].equals("jsession-id")) {
-													reqSession = HttpServer.m_sessionMap.get(nameValue[1]);
-												}
-												
-											}
-										}
-										MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap,
-												paramsMap, serverName, protocol, null, null, null,
-												query, uri.toString(), null, null, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
-												m_servletContext, reqSession);
-										MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
-										resp.addDateHeader("Date", date.getTime());
-										resp.setStatus(200);
-										
-										HttpServlet s = m_servlets.get(servletName);
-										s.service(req, resp);
-										
-										// set up session id
-										MyHttpSession session = (MyHttpSession) req.getSession(false);
-										if (session != null) {
-											Cookie sessionCookie = new Cookie("jsession-id", session.getId());
-											resp.addCookie(sessionCookie);
-											HttpServer.m_sessionMap.put(session.getId(), session);
-										}
-										resp.flushBuffer();
+										runServlet(in, os, date, servletName);
 										return;
-										
 									} else if (file.isDirectory()) {
 										File[] files = file.listFiles();
 										String result = new String("*****This is a directory.*****\n\n");
@@ -463,6 +472,10 @@ public class HttpParser {
 								FileInputStream fis = new FileInputStream(file);
 								initialLineByte = http11ok200;
 							} else if (method.equals("POST")) {
+								if (servletName != null) {
+									runServlet(in, os, date, servletName);
+									return;
+								}
 								initialLineByte = http11error501;
 							} else
 								initialLineByte = http11error400;

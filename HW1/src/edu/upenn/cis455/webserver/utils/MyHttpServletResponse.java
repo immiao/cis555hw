@@ -104,6 +104,7 @@ public class MyHttpServletResponse implements HttpServletResponse {
 		
 		// special header
 		result += "Content-Type: " + m_contentType + "\r\n";
+		m_contentLength = m_outputBuffer.getByteBuf().length;
 		if (m_contentLength != -1)
 			result += "Content-Length: " + m_contentLength + "\r\n";
 		if (m_dateKey != null)
