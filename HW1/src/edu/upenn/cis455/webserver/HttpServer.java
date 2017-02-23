@@ -113,7 +113,7 @@ public class HttpServer {
 		for (String servletName : h.m_servletClass.keySet()) {
 			
 			String className = h.m_servletClass.get(servletName);
-			Class servletClass = Class.forName("test.edu.upenn.cis455.hw1." + className);
+			Class servletClass = Class.forName(className);
 			HttpServlet servlet = (HttpServlet) servletClass.newInstance();
 			HashMap<String, String> servletParams = h.m_servletParams.get(servletName);
 			MyServletConfig config = new MyServletConfig(servletName, c, servletParams);

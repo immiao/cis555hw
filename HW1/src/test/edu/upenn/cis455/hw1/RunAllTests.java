@@ -8,7 +8,9 @@ public class RunAllTests extends TestCase {
         @SuppressWarnings("rawtypes")
         public static Test suite() {
                 Class[] testClasses = {
-                                HelloWorldTest.class,
+                                HttpRequestTest.class,
+                                HttpResponseTest.class,
+                                HttpSessionTest.class
                 };
                 return new TestSuite(testClasses);
         }

@@ -5,7 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,6 +35,9 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	private String m_dateKey = null;
 	private Date m_date = null;
 	private Vector<Cookie> Cookies = new Vector<Cookie>();
+	
+	private String m_statusMsg = null;
+	private String m_location = null;
 	
 	public static HashMap<Integer, String> status = new HashMap<Integer, String>();
 	static SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
@@ -100,7 +105,12 @@ public class MyHttpServletResponse implements HttpServletResponse {
 		String result = new String();
 		
 		// initial line
-		result += m_protocol + " " + m_statusCode + " " + status.get(m_statusCode) + "\r\n";
+		if (m_statusMsg == null)
+			result += m_protocol + " " + m_statusCode + " " + status.get(m_statusCode) + "\r\n";
+		else {
+			result += m_protocol + " " + m_statusCode + " " + m_statusMsg + "\r\n";
+			m_statusMsg = null;
+		}
 		
 		// special header
 		result += "Content-Type: " + m_contentType + "\r\n";
@@ -109,6 +119,8 @@ public class MyHttpServletResponse implements HttpServletResponse {
 			result += "Content-Length: " + m_contentLength + "\r\n";
 		if (m_dateKey != null)
 			result += m_dateKey + ": " + format.format(m_date) + "\r\n";
+		if (m_location != null)
+			result += "Location: " + m_location;
 		
 		// header map
 		for (String key : m_headerMap.keySet()) {
@@ -255,9 +267,14 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	}
 
 	@Override
-	public String encodeRedirectURL(String arg0) {
-		// TODO Auto-generated method stub
-		return null; 
+	public String encodeRedirectURL(String url) {
+		try {
+			return URLEncoder.encode(url, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return url;
+		}	
 	}
 
 	@Override
@@ -267,9 +284,14 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	}
 
 	@Override
-	public String encodeURL(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public String encodeURL(String url) {
+		try {
+			return URLEncoder.encode(url, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return url;
+		}	
 	}
 
 	@Override
@@ -279,21 +301,23 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	}
 
 	@Override
-	public void sendError(int arg0) throws IOException {
-		// TODO Auto-generated method stub
-
+	public void sendError(int sc) throws IOException {
+		m_statusCode = sc;
+		flushBuffer();
 	}
 
 	@Override
-	public void sendError(int arg0, String arg1) throws IOException {
-		// TODO Auto-generated method stub
-
+	public void sendError(int sc, String msg) throws IOException {
+		m_statusCode = sc;
+		m_statusMsg = msg;
+		flushBuffer();
 	}
 
 	@Override
-	public void sendRedirect(String arg0) throws IOException {
-		// TODO Auto-generated method stub
-
+	public void sendRedirect(String location) throws IOException {
+		m_location = location;
+		m_statusCode = 302;
+		flushBuffer();
 	}
 
 	@Override
