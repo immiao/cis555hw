@@ -583,7 +583,7 @@ public class HttpParser {
 			// System.out.println("body");
 			System.arraycopy(bodyByte, 0, result, offset, bodyByte.length);
 		}
-		in.close();
+
 		os.write(result);
 	}
 }

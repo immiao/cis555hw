@@ -119,7 +119,7 @@ public class HttpServer {
 			MyServletConfig config = new MyServletConfig(servletName, c, servletParams);
 			servlet.init(config);
 			servlets.put(servletName, servlet);
-			//System.out.println(servletName);
+			System.out.println(servletName);
 		}
 		return servlets;
 	}
