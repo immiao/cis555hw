@@ -4,23 +4,77 @@
     PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" 
     "http://java.sun.com/dtd/web-app_2_3.dtd">
 
- <web-app>
-   <display-name>Channel Subscription Servlets</display-name>
-   <context-param>
-     <param-name>BDBstore</param-name>
-     <param-value>database</param-value>
-   </context-param>
-    
-   <servlet>
-     <servlet-name>xpath</servlet-name>
-     <servlet-class>edu.upenn.cis455.servlet.XPathServlet</servlet-class> 
-   </servlet>
-    
-   <servlet-mapping>
-     <servlet-name>xpath</servlet-name>
-     <url-pattern>/xpath</url-pattern>
-   </servlet-mapping>  
+<web-app>
+	<display-name>Channel Subscription Servlets</display-name>
+	<context-param>
+		<param-name>BDBstore</param-name>
+		<param-value>database</param-value>
+	</context-param>
+	<servlet>
+		<servlet-name>session1</servlet-name>
+		<servlet-class>test.edu.upenn.cis455.SessionServlet1</servlet-class>
+		<!-- Load this servlet at server startup time -->
+		<load-on-startup />
+	</servlet>
 
-   <!-- add any additional servlets and servlet mappings here -->
+	<servlet>
+		<servlet-name>session2</servlet-name>
+		<servlet-class>test.edu.upenn.cis455.SessionServlet2</servlet-class>
+		<!-- Load this servlet at server startup time -->
+		<load-on-startup />
+	</servlet>
+
+	<servlet>
+		<servlet-name>session3</servlet-name>
+		<servlet-class>test.edu.upenn.cis455.SessionServlet3</servlet-class>
+		<!-- Load this servlet at server startup time -->
+		<load-on-startup />
+	</servlet>
+	<servlet>
+		<servlet-name>xpath</servlet-name>
+		<servlet-class>edu.upenn.cis455.servlet.XPathServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>root</servlet-name>
+		<servlet-class>edu.upenn.cis455.servlet.RootServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>register</servlet-name>
+		<servlet-class>edu.upenn.cis455.servlet.RegisterServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>xpath</servlet-name>
+		<url-pattern>/xpath</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>root</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>register</servlet-name>
+		<url-pattern>/register.jsp</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>session1</servlet-name>
+		<url-pattern>/session1</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>session2</servlet-name>
+		<url-pattern>/session2</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>session3</servlet-name>
+		<url-pattern>/session3</url-pattern>
+	</servlet-mapping>
+
+	<!-- add any additional servlets and servlet mappings here -->
 
 </web-app>

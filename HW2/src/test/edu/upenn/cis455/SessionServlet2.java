@@ -1,4 +1,4 @@
-package test.edu.upenn.cis455.hw1;
+package test.edu.upenn.cis455;
 
 import javax.servlet.*;
 import javax.servlet.http.*;

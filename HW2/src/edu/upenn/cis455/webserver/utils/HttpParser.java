@@ -86,7 +86,7 @@ public class HttpParser {
 		// } catch (IOException e) {
 		// e.printStackTrace();
 		// }
-		System.out.println(initialLine[1]);
+		// System.out.println(initialLine[1]);
 		try {
 			uri = new URI(initialLine[1]);
 		} catch (URISyntaxException e) {
@@ -101,7 +101,7 @@ public class HttpParser {
 		query = uri.getQuery();
 
 		// parse query string
-		if (query != null) {
+		if (query != null && !query.isEmpty()) {
 			String[] pairArr = query.split("&");
 			for (String p : pairArr) {
 				String[] keyValue = p.split("=");
@@ -186,6 +186,12 @@ public class HttpParser {
 			e.printStackTrace(pw);
 			pw.close();
 		}
+		// test params
+		System.out.println("-----Params Begin-----");
+		for (String k : paramsMap.keySet()) {
+			System.out.println(k + " : " + paramsMap.get(k).get(0));
+		}
+		System.out.println("-----Params End-----");
 	}
 
 	// initialized function is executed in the main thread
@@ -265,9 +271,11 @@ public class HttpParser {
 
 	private void runServlet(BufferedReader in, OutputStream os, Date date, String servletName) throws Exception {
 		MyHttpSession reqSession = null;
+		System.out.println("----request header begin----");
 		for (String key : headerMap.keySet()) {
 			System.out.println(key + ": " + headerMap.get(key));
 		}
+		System.out.println("----request header end----");
 		if (headerMap.containsKey("cookie")) {
 			String s = headerMap.get("cookie").get(0);
 			String[] cookies = s.split(";");
@@ -282,7 +290,7 @@ public class HttpParser {
 
 		// get the host name
 		String hostName = headerMap.get("host").get(0);
-		String url = "http://" + hostName;
+		String url = "http://" + hostName + dir;
 
 		MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap, paramsMap, serverName, protocol,
 				null, null, null, query, dir, url, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
@@ -301,7 +309,8 @@ public class HttpParser {
 		if (session != null) {
 			Cookie sessionCookie = new Cookie("jsession-id", session.getId());
 			resp.addCookie(sessionCookie);
-			HttpServer.m_sessionMap.put(session.getId(), session);
+			if (session.isNew())
+				HttpServer.m_sessionMap.put(session.getId(), session);
 		}
 
 		resp.flushBuffer();
@@ -325,6 +334,7 @@ public class HttpParser {
 			else {
 				// judge if there's any servlet matched
 				if (m_handler != null) {
+					System.out.println("DIR: " + dir);
 					for (Map.Entry<String, String> entry : m_handler.m_servletMapping.entrySet()) {
 						String uri = entry.getValue();
 						int length = uri.length();
@@ -586,7 +596,7 @@ public class HttpParser {
 			}
 			os.write(result);
 			in.close();
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

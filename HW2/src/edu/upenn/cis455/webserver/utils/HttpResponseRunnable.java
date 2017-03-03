@@ -27,7 +27,7 @@ public class HttpResponseRunnable implements Runnable{
 	public void run() {
 		try {
 			OutputStream os = m_socket.getOutputStream();
-			//m_socket.setSoTimeout(5000); // does it work?
+			m_socket.setSoTimeout(5000); // does it work?
 			m_httpParser.GetResult(os);
 			os.flush();
 			os.close();
