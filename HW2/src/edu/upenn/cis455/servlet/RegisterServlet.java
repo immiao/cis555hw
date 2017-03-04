@@ -19,33 +19,39 @@ public class RegisterServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HashMap<String, Vector<String>> m = (HashMap<String, Vector<String>>) request.getParameterMap();
-		// for (String k : m.keySet()) {
-		// System.out.println(k + " : " + m.get(k).get(0));
-		// }
+		URL url = new URL(request.getRequestURL().toString());
+
+		if (m.containsKey("logout_button")) {
+			// normally, getSession(false) should not be null
+			HttpSession session = request.getSession(false);
+			if (session != null) {
+				session.invalidate();
+			}
+			response.sendRedirect("http://" + url.getHost() + ":" + url.getPort());
+			return;
+		}
+		
 		String usr = request.getParameter("usr");
 		String psw = request.getParameter("psw");
-		URL url = new URL(request.getRequestURL().toString());
-		
+
 		if (usr == null || psw == null) {
 			response.sendRedirect("http://" + url.getHost() + ":" + url.getPort());
 			return;
 		}
-
+		
+		// main login page
 		if (m.containsKey("login_button")) {
 			System.out.println(psw + "----" + HttpServer.account.get(usr));
 			if (psw.equals(HttpServer.account.get(usr))) {
-				HttpSession session = request.getSession(); // create a new session
+				// create a new session
+				HttpSession session = request.getSession();
 				session.setAttribute("username", usr);
 			}
 		} else if (m.containsKey("create_button")) {
 			HttpServer.account.put(usr, psw);
-		} else if (m.containsKey("logout_button")) {
-			HttpSession session = request.getSession(false); // normally, getSession(false) should not be null
-			if (session != null) {
-				session.invalidate();
-			}
 		}
 		response.sendRedirect("http://" + url.getHost() + ":" + url.getPort());
+
 	}
 
 	@Override

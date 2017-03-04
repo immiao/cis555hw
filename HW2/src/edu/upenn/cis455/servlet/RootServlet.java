@@ -30,7 +30,7 @@ public class RootServlet extends HttpServlet {
 			out.println("<input type=\"submit\" name=\"create_button\" value=\"Create New Account\" />");
 			out.println("</form>");
 		} else {
-			out.println("<p>" + session.getAttribute("username") + "</p>");
+			out.println("<p>Username: " + session.getAttribute("username") + "</p>");
 			out.println("<form action=\"/register.jsp\" method=\"post\" />");
 			out.println("<input type=\"submit\" name=\"logout_button\" value=\"Logout\" />");
 			out.println("</form>");

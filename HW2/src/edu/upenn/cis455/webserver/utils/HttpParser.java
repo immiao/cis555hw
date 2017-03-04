@@ -309,10 +309,16 @@ public class HttpParser {
 		if (session != null) {
 			Cookie sessionCookie = new Cookie("jsession-id", session.getId());
 			resp.addCookie(sessionCookie);
-			if (session.isNew())
+			if (session.isNew()) {
 				HttpServer.m_sessionMap.put(session.getId(), session);
+				session.setIsNew(false);
+				System.out.println("***New Session***");
+			}	
 		}
-
+		else {
+			System.out.println("***NULL Session***");
+		}
+		
 		resp.flushBuffer();
 	}
 

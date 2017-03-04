@@ -13,7 +13,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 
 public class MyHttpSession implements HttpSession {
-	
+
 	private HashMap<String, Object> m_attributes = new HashMap<String, Object>();
 	private String m_id;
 	private boolean m_isValid;
@@ -22,7 +22,7 @@ public class MyHttpSession implements HttpSession {
 	private MyServletContext m_servletContext;
 	private int m_maxInactiveInterval = -1;
 	private boolean m_isNew;
-	
+
 	public MyHttpSession(String id, MyServletContext context) {
 		m_id = id;
 		m_isValid = true;
@@ -32,16 +32,23 @@ public class MyHttpSession implements HttpSession {
 		m_isNew = true;
 	}
 	
-	public void access() {
-		m_isNew = false;
-		m_lastAccessedTime = new Date();
-		if (m_maxInactiveInterval != -1 && m_lastAccessedTime.getTime() - m_creationTime.getTime() > m_maxInactiveInterval)
-			m_isValid = false;
+	public void setIsNew(boolean b) {
+		m_isNew = b;
 	}
 	
+	public void access() {
+		m_lastAccessedTime = new Date();
+		if (m_maxInactiveInterval != -1
+				&& m_lastAccessedTime.getTime() - m_creationTime.getTime() > m_maxInactiveInterval) {
+			m_isValid = false;
+			System.out.println("Session Timeout");
+		}
+	}
+
 	public boolean isValid() {
 		return m_isValid;
 	}
+
 	@Override
 	public Object getAttribute(String name) {
 		return m_attributes.get(name);

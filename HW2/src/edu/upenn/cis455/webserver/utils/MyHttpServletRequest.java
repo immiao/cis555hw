@@ -367,9 +367,6 @@ public class MyHttpServletRequest implements HttpServletRequest {
 			if (!hasSession()) {
 				m_session = null;
 			}
-			else {
-				m_session.access();
-			}
 		}
 		return m_session;
 	}
