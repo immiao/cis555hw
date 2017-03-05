@@ -5,6 +5,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.http.HttpServlet;
 import javax.xml.parsers.SAXParser;
@@ -18,6 +20,7 @@ import java.io.*;
 
 public class HttpServer {
 	public static HashMap<String, String> account = new HashMap<String, String>();
+	public static MyDbEnv dbEnv = new MyDbEnv();
 	
 	private static Handler parseWebdotxml(String webdotxml) throws Exception {
 		Handler h = new Handler();
@@ -94,7 +97,14 @@ public class HttpServer {
 					System.exit(-1);
 				}
 				// get servlet name by url
-				m_servletMapping.put(m_servletName, value);
+				HashSet<String> s = m_servletMapping.get(m_servletName);
+				if (s != null)
+					s.add(value);
+				else {
+					s = new HashSet<String>();
+					s.add(value);
+					m_servletMapping.put(m_servletName, s);
+				}
 				m_servletName = null;
 				m_state = 0;
 			}
@@ -107,7 +117,7 @@ public class HttpServer {
 		public HashMap<String, String> m_servletClass = new HashMap<String, String>();
 		public HashMap<String, String> m_contextParams = new HashMap<String, String>();
 		public HashMap<String, HashMap<String, String>> m_servletParams = new HashMap<String, HashMap<String, String>>();
-		public HashMap<String, String> m_servletMapping = new HashMap<String, String>();
+		public HashMap<String, HashSet<String>> m_servletMapping = new HashMap<String, HashSet<String>>();
 	}
 
 	private static HashMap<String, HttpServlet> createServlets(Handler h, MyServletContext c) throws Exception {
@@ -164,6 +174,9 @@ public class HttpServer {
 				h = parseWebdotxml(webXmlPath);
 				c = new MyServletContext(h.m_contextParams, webXmlPath, h.m_displayName);
 				m_servlets = createServlets(h, c);
+				
+				// setup database
+				dbEnv.setup(new File(h.m_contextParams.get("BDBstore")), false);
 			}
 //			BufferedReader b = new BufferedReader(new FileReader("ttt.txt"));
 //			String s = b.readLine();

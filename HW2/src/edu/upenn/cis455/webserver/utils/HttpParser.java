@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -313,12 +314,11 @@ public class HttpParser {
 				HttpServer.m_sessionMap.put(session.getId(), session);
 				session.setIsNew(false);
 				System.out.println("***New Session***");
-			}	
-		}
-		else {
+			}
+		} else {
 			System.out.println("***NULL Session***");
 		}
-		
+
 		resp.flushBuffer();
 	}
 
@@ -341,17 +341,23 @@ public class HttpParser {
 				// judge if there's any servlet matched
 				if (m_handler != null) {
 					System.out.println("DIR: " + dir);
-					for (Map.Entry<String, String> entry : m_handler.m_servletMapping.entrySet()) {
-						String uri = entry.getValue();
-						int length = uri.length();
-						//
-						if (uri.charAt(length - 1) == '*') {
-							uri = uri.substring(0, length - 2);
-							if (dir.startsWith(uri))
-								servletName = entry.getKey();
-						} else {
-							if (dir.equals(uri))
-								servletName = entry.getKey();
+					for (Map.Entry<String, HashSet<String>> entry : m_handler.m_servletMapping.entrySet()) {
+						HashSet<String> s = entry.getValue();
+						for (String uri : s) {
+							int length = uri.length();
+							//
+							if (uri.charAt(length - 1) == '*') {
+								uri = uri.substring(0, length - 2);
+								if (dir.startsWith(uri)) {
+									servletName = entry.getKey();
+									break;
+								}
+							} else {
+								if (dir.equals(uri)) {
+									servletName = entry.getKey();
+									break;
+								}
+							}
 						}
 					}
 					if (servletName != null)

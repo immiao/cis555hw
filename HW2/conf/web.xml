@@ -35,31 +35,16 @@
 		<servlet-class>edu.upenn.cis455.servlet.XPathServlet</servlet-class>
 	</servlet>
 
-	<servlet>
-		<servlet-name>root</servlet-name>
-		<servlet-class>edu.upenn.cis455.servlet.RootServlet</servlet-class>
-	</servlet>
-
-	<servlet>
-		<servlet-name>register</servlet-name>
-		<servlet-class>edu.upenn.cis455.servlet.RegisterServlet</servlet-class>
-	</servlet>
-
 	<servlet-mapping>
 		<servlet-name>xpath</servlet-name>
-		<url-pattern>/xpath</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
-		<servlet-name>root</servlet-name>
 		<url-pattern>/</url-pattern>
 	</servlet-mapping>
 
 	<servlet-mapping>
-		<servlet-name>register</servlet-name>
+		<servlet-name>xpath</servlet-name>
 		<url-pattern>/register.jsp</url-pattern>
 	</servlet-mapping>
-
+	
 	<servlet-mapping>
 		<servlet-name>session1</servlet-name>
 		<url-pattern>/session1</url-pattern>
