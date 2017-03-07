@@ -1,7 +1,9 @@
 package edu.upenn.cis455.webserver.utils;
 
 import java.io.File;
+import java.util.UUID;
 
+import com.sleepycat.bind.tuple.LongBinding;
 import com.sleepycat.bind.tuple.StringBinding;
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
@@ -20,7 +22,8 @@ public class MyDbEnv {
 
 	private Database m_accountDb;
 	private Database m_fileDb;
-
+	//private long m_fakeRabinFingerprint = 0;
+	
 	public MyDbEnv() {
 
 	}
@@ -44,7 +47,7 @@ public class MyDbEnv {
 	}
 
 	public void insertAccount(String usr, String psw) {
-		
+
 		// check if username already exists
 		DatabaseEntry searchKey = new DatabaseEntry();
 		DatabaseEntry foundVal = new DatabaseEntry();
@@ -55,7 +58,7 @@ public class MyDbEnv {
 			System.out.println("Username already exists! Create failed!");
 			return;
 		}
-		
+
 		// if not, insert the new account
 		DatabaseEntry keyEntry = new DatabaseEntry();
 		DatabaseEntry dataEntry = new DatabaseEntry();
@@ -65,7 +68,7 @@ public class MyDbEnv {
 		StringBinding.stringToEntry(psw, dataEntry);
 		OperationStatus status = m_accountDb.put(txn, keyEntry, dataEntry);
 		if (status != OperationStatus.SUCCESS) {
-			throw new RuntimeException("Data insertion got status " + status);
+			throw new RuntimeException("AccountDB Data insertion got status " + status);
 		}
 		txn.commit();
 	}
@@ -75,6 +78,33 @@ public class MyDbEnv {
 		DatabaseEntry foundVal = new DatabaseEntry();
 		StringBinding.stringToEntry(usr, searchKey);
 		Cursor cursor = m_accountDb.openCursor(null, null);
+		OperationStatus retVal = cursor.getSearchKey(searchKey, foundVal, LockMode.DEFAULT);
+		if (retVal == OperationStatus.SUCCESS)
+			return StringBinding.entryToString(foundVal);
+		return null;
+	}
+
+	public void insertFile(String url, String content) {
+		UUID key = UUID.fromString(url);
+		DatabaseEntry keyEntry = new DatabaseEntry();
+		DatabaseEntry dataEntry = new DatabaseEntry();
+		
+		Transaction txn = m_env.beginTransaction(null, null);
+		StringBinding.stringToEntry(key.toString(), keyEntry);
+		StringBinding.stringToEntry(content, dataEntry);
+		OperationStatus status = m_fileDb.put(txn, keyEntry, dataEntry);
+		if (status != OperationStatus.SUCCESS) {
+			throw new RuntimeException("FileDB Data insertion got status " + status);
+		}
+		txn.commit();
+	}
+	
+	public String getFile(String url) {
+		UUID key = UUID.fromString(url);
+		DatabaseEntry searchKey = new DatabaseEntry();
+		DatabaseEntry foundVal = new DatabaseEntry();
+		StringBinding.stringToEntry(key.toString(), searchKey);
+		Cursor cursor = m_fileDb.openCursor(null, null);
 		OperationStatus retVal = cursor.getSearchKey(searchKey, foundVal, LockMode.DEFAULT);
 		if (retVal == OperationStatus.SUCCESS)
 			return StringBinding.entryToString(foundVal);
