@@ -11,7 +11,7 @@ public class SimpleHttpRequest {
 	private String m_method;
 	private String m_URI;
 	private String m_protocol;
-	private HashMap<String, Vector<String>> m_header;
+	private HashMap<String, Vector<String>> m_header = new HashMap<String, Vector<String>>();
 
 	public SimpleHttpRequest(String method, String URI, String protocol) {
 		m_method = method;
@@ -20,7 +20,6 @@ public class SimpleHttpRequest {
 		else
 			m_URI = URI;
 		m_protocol = protocol;
-		m_header = new HashMap<String, Vector<String>>();
 	}
 
 	public void addHeader(String key, String val) {
@@ -65,5 +64,9 @@ public class SimpleHttpRequest {
 		}
 		result += "\r\n";
 		return result;
+	}
+	
+	public String getMethod() {
+		return m_method;
 	}
 }

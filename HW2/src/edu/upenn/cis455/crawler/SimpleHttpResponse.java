@@ -7,8 +7,8 @@ public class SimpleHttpResponse {
 	private String m_protocol;
 	private int m_statusCode;
 	private String m_statusMsg;
-	private String m_content;
-	private HashMap<String, Vector<String>> m_header;
+	private String m_content = null;
+	private HashMap<String, Vector<String>> m_header = new HashMap<String, Vector<String>>();
 	public SimpleHttpResponse(String protocol, int code, String msg) {
 		m_protocol = protocol;
 		m_statusCode = code;
@@ -16,11 +16,12 @@ public class SimpleHttpResponse {
 	}
 	
 	public void addHeader(String key, String val) {
-		Vector<String> v = m_header.get(key.toLowerCase());
+		String lowerCaseKey = key.toLowerCase();
+		Vector<String> v = m_header.get(lowerCaseKey);
 		if (v == null) {
 			v = new Vector<String>();
 			v.add(val);
-			m_header.put(key, v);
+			m_header.put(lowerCaseKey, v);
 		} else {
 			v.add(val);
 		}
@@ -46,5 +47,13 @@ public class SimpleHttpResponse {
 		if (v == null)
 			return null;
 		return v.get(0);
+	}
+	
+	public int getStatusCode() {
+		return m_statusCode;
+	}
+	
+	public String getStatus() {
+		return m_statusCode + " " + m_statusMsg;
 	}
 }
