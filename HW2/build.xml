@@ -55,7 +55,7 @@
 	</target>
 	<target name="servlet">
 		<java classname="edu.upenn.cis455.webserver.HttpServer" failonerror="true" fork="yes">
-			<arg line="8080 / /Users/mac/Desktop/miaok/HW2/conf/web.xml" />
+			<arg line="8080 / conf/web.xml" />
 			<classpath refid="HW2.classpath" />
 		</java>
 	</target>

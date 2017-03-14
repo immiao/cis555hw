@@ -11,7 +11,9 @@ Multi-threaded crawler && content-seen test
 
 Any special instructions for building and running your solution?
   (include detailed instructions, or write 'None')
-I simply use eclipse to export the build.xml file for ant. Use "ant servlet" && "ant crawler" to test.
+I simply use eclipse to export the build.xml file for ant. 
+Use "ant servlet" && "ant crawler" to start the default program.
+Change build.xml if you want to change the arguments.
 
 Did you personally write _all_ the code you are submitting
 (other than code from the course web page)?
