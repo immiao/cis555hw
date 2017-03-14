@@ -219,4 +219,76 @@ public class MyDbEnv {
 			return StringBinding.entryToString(foundVal);
 		return null;
 	}
+	
+	public void nonTransactionalInsertAccount(String usr, String psw) {
+
+		// check if username already exists
+		DatabaseEntry searchKey = new DatabaseEntry();
+		DatabaseEntry foundVal = new DatabaseEntry();
+		StringBinding.stringToEntry(usr, searchKey);
+		Cursor cursor = m_accountDb.openCursor(null, null);
+		OperationStatus retVal = cursor.getSearchKey(searchKey, foundVal, LockMode.DEFAULT);
+		if (retVal == OperationStatus.SUCCESS) {
+			System.out.println("Username already exists! Create failed!");
+			return;
+		}
+
+		// if not, insert the new account
+		DatabaseEntry keyEntry = new DatabaseEntry();
+		DatabaseEntry dataEntry = new DatabaseEntry();
+
+		StringBinding.stringToEntry(usr, keyEntry);
+		StringBinding.stringToEntry(psw, dataEntry);
+		//Transaction txn = m_env.beginTransaction(null, null);
+		OperationStatus status = m_accountDb.put(null, keyEntry, dataEntry);
+		if (status != OperationStatus.SUCCESS) {
+			throw new RuntimeException("AccountDB Data insertion got status " + status);
+		}
+		//txn.commit();
+	}
+	
+	// store a MD5 digest for content-seen test
+	public boolean nonTransactionalInsertContent(String content) throws UnsupportedEncodingException {
+		//System.out.println(content.length());
+		if (isContentExist(content))
+			return false;
+		byte[] key = m_messageDigest.digest(content.getBytes());
+		//key = m_messageDigest.digest("SADASDAS".getBytes());
+		//System.out.println(Arrays.toString(key));
+		DatabaseEntry keyEntry = new DatabaseEntry();
+		DatabaseEntry valueEntry = new DatabaseEntry();
+		ByteArrayBinding byteArrayBinding = new ByteArrayBinding();
+		
+		byteArrayBinding.objectToEntry(key, keyEntry);
+		byteArrayBinding.objectToEntry(key, valueEntry);
+		//Transaction txn = m_env.beginTransaction(null, null);
+		OperationStatus status = m_contentHashDb.put(null, keyEntry, valueEntry);
+		if (status != OperationStatus.SUCCESS) {
+			throw new RuntimeException("ContentHashDB Data insertion got status " + status);
+		}
+		//txn.commit();
+		return true;
+	}
+	
+	public void nonTransactionalInsertPage(String url, String content, PageInfo info) {
+		UUID keyId = UUID.nameUUIDFromBytes(url.getBytes());
+		String key = keyId.toString();
+		
+		// insert PageInfo
+		insertPageInfo(key, info);
+	
+		// insert content
+		DatabaseEntry keyEntry = new DatabaseEntry();
+		DatabaseEntry dataEntry = new DatabaseEntry();
+		//Transaction txn = m_env.beginTransaction(null, null);
+		StringBinding.stringToEntry(key, keyEntry);
+		StringBinding.stringToEntry(content, dataEntry);
+		OperationStatus status = m_fileDb.put(null, keyEntry, dataEntry);
+		if (status != OperationStatus.SUCCESS) {
+			throw new RuntimeException("FileDB Data insertion got status " + status);
+		}
+		//txn.commit();
+		//System.out.println("SUCCESS");
+		
+	}
 }

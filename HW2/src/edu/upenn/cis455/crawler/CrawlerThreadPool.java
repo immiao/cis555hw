@@ -5,7 +5,7 @@ import java.util.Queue;
 
 
 public class CrawlerThreadPool {
-	private final int nTotalThreads;
+	public final int nTotalThreads;
 	private final CrawlerThread[] threads;
 	// use Queue interface for scalability
 	private Queue<Runnable> queue;

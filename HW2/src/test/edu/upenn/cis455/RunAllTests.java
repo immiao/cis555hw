@@ -10,8 +10,10 @@ public class RunAllTests extends TestCase
   {
     try {
       Class[]  testClasses = {
-        /* TODO: Add the names of your unit test classes here */
-        // Class.forName("your.class.name.here") 
+    		  CrawlerTest0.class,
+    		  CrawlerTest1.class,
+    		  DbTest0.class,
+    		  DbTest1.class
       };   
       
       return new TestSuite(testClasses);
