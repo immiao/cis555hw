@@ -24,6 +24,7 @@ import org.w3c.tidy.Tidy;
 
 import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis455.webserver.utils.MyDbEnv;
+import edu.upenn.cis455.webserver.utils.PageInfo;
 
 public class CrawlerRunnable implements Runnable {
 	private String m_URL;

@@ -23,8 +23,6 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.SecondaryConfig;
 import com.sleepycat.je.Transaction;
 
-import edu.upenn.cis455.crawler.PageInfo;
-
 import com.sleepycat.bind.ByteArrayBinding;
 import com.sleepycat.bind.EntryBinding;
 import com.sleepycat.bind.serial.SerialBinding;
