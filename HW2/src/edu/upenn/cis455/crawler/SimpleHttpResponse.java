@@ -1,5 +1,8 @@
 package edu.upenn.cis455.crawler;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -55,5 +58,13 @@ public class SimpleHttpResponse {
 	
 	public String getStatus() {
 		return m_statusCode + " " + m_statusMsg;
+	}
+	
+	public long getLastModified() throws ParseException {
+		Vector<String> v = m_header.get("last-modified");
+		if (v == null)
+			return -1;
+		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy hh:mm:ss z");
+		return format.parse(v.get(0)).getTime();
 	}
 }

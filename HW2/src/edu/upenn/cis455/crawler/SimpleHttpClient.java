@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 public class SimpleHttpClient {
@@ -49,10 +50,9 @@ public class SimpleHttpClient {
 				if (headerLine.length != 2)
 					throw new InvalidHttpResponseException();
 				response.addHeader(headerLine[0].trim(), headerLine[1].trim());
-//				 System.out.println(headerLine[0].trim() + " : " +
-//				 headerLine[1].trim());
+				 //System.out.println(headerLine[0].trim() + " : " + headerLine[1].trim());
 			}
-			//System.out.println("---------");
+			// System.out.println("---------");
 
 			// if not HEAD request, read content
 			if (!req.getMethod().equals("HEAD")) {
@@ -60,33 +60,39 @@ public class SimpleHttpClient {
 				char[] buf = new char[contentSize + 1000];
 
 				int offset = 0;
-				//int c = 0;
-				//contentSize = 30205;
+				// int c = 0;
+				// contentSize = 30205;
 				while (offset < contentSize) {
-					//String t = c + ":" + offset;
-					//if (contentSize == 30338) {
-						//System.out.println(t);
-						// writer.write(t);
-					//}
-					//c++;
-					//System.out.println(contentSize - offset);
+					// String t = c + ":" + offset;
+					// if (contentSize == 30338) {
+					// System.out.println(t);
+					// writer.write(t);
+					// }
+					// c++;
+					// System.out.println(contentSize - offset);
 					offset += m_in.read(buf, offset, contentSize - offset);
 				}
 
 				String content = new String(buf);
 				response.setContent(content);
-				 //System.out.print(response.getContent());
+				// System.out.print(response.getContent());
 			}
+		} catch (SocketTimeoutException e) {
+			System.out.println(req.getURL() + ": Read Time Out");
+			//e.printStackTrace();
+			return null;
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		} catch (InvalidHttpResponseException e) {
 			e.printStackTrace();
+			return null;
 		} finally {
-
 			socket.close();
 		}
 		return response;

@@ -1,3 +1,3 @@
-HEAD / HTTP/1.1
+GET /cnn/index.html/ HTTP/1.1
 host:crawltest.cis.upenn.edu
 

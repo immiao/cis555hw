@@ -422,7 +422,7 @@ public class HttpParser {
 					String headerStr = new String();
 					// date
 					Date date = new Date();
-					SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
+					SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy hh:mm:ss z");
 					format.setTimeZone(TimeZone.getTimeZone("GMT"));
 
 					headerStr += "Date: " + format.format(date) + "\r\n";
@@ -486,8 +486,8 @@ public class HttpParser {
 									} else { // add if-modified-since here
 										String modifiedStr = headerMap.get("if-modified-since").get(0);
 										String unmodifiedStr = headerMap.get("if-unmodified-since").get(0);
-										SimpleDateFormat format0 = new SimpleDateFormat("EEE, d MMM yyyy, hh:mm:ss z");
-										SimpleDateFormat format1 = new SimpleDateFormat("EEEE, d-MMM-yy, hh:mm:ss z");
+										SimpleDateFormat format0 = new SimpleDateFormat("EEE, d MMM yyyy hh:mm:ss z");
+										SimpleDateFormat format1 = new SimpleDateFormat("EEEE, d-MMM-yy hh:mm:ss z");
 										SimpleDateFormat format2 = new SimpleDateFormat("EEE MMM d hh:mm:ss yyyy");
 
 										Date modifiedDate = new Date(file.lastModified());
