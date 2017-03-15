@@ -1,129 +1,171 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- WARNING: Eclipse auto-generated file.
-              Any modifications will be overwritten.
-              To include a user specific buildfile here, simply create one in the same
-              directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. -->
-<project basedir="." default="build" name="HW2">
-	<property environment="env" />
-	<property name="junit.output.dir" value="junit" />
-	<property name="debuglevel" value="source,lines,vars" />
-	<property name="target" value="1.8" />
-	<property name="source" value="1.8" />
-	<path id="HW2.classpath">
-		<pathelement location="target/classes/" />
-		<pathelement location="lib/je-6.2.31.jar" />
-		<pathelement location="lib/jtidy-r938.jar" />
-		<pathelement location="lib/junit-4.12.jar" />
-		<pathelement location="lib/servlet-api.jar" />
-		<pathelement location="lib/jsoup-1.10.2.jar" />
-	</path>
-	<target name="init">
-		<mkdir dir="target/classes/" />
-		<copy includeemptydirs="false" todir="target/classes/">
-			<fileset dir="src">
-				<exclude name="**/*.java" />
-			</fileset>
-		</copy>
-	</target>
-	<target name="clean">
-		<delete dir="target/classes/" />
-		<delete dir="database/**" />
-	</target>
-	<target depends="clean" name="cleanall" />
-	<target depends="build-subprojects,build-project" name="build" />
-	<target name="build-subprojects" />
-	<target depends="init" name="build-project">
-		<echo message="${ant.project.name}: ${ant.file}" />
-		<javac failonerror="false" debug="true" debuglevel="${debuglevel}" destdir="target/classes/" includeantruntime="false" source="${source}" target="${target}">
-			<src path="src" />
-			<include name="edu/upenn/cis455/**" />
-			<include name="test/edu/upenn/cis455/**" />
-			<classpath refid="HW2.classpath" />
+<?xml version="1.0"?>
+
+<project name="HW2" default="build" basedir=".">
+	<property name="shared.root" location="${basedir}" />
+	<property name="file.separator" location="/" />
+	<property name="project.root" location="${basedir}" />
+	<property name="build.dir" location="${project.root}" />
+	<property name="build.target.dir" location="${project.root}${file.separator}target" />
+	<property name="web-inf.dir" location="${build.target.dir}${file.separator}WEB-INF" />
+	<property name="classes.dir" location="${web-inf.dir}${file.separator}classes" />
+	<property name="web-inf.lib.dir" location="${web-inf.dir}${file.separator}lib" />
+	<property name="test-classes.dir" location="${build.target.dir}${file.separator}test${file.separator}classes" />
+	<property name="test-lib.dir" location="${build.target.dir}${file.separator}test${file.separator}lib" />
+	<property name="src.main.dir" location="${build.dir}${file.separator}src${file.separator}" />
+	<property name="inputlib.dir" location="${shared.root}${file.separator}lib" />
+	<property name="src.test.dir" location="${build.dir}${file.separator}src${file.separator}test" />
+	<property name="resources.dir" location="${build.dir}${file.separator}resources" />
+	<property name="conf.dir" location="${build.dir}${file.separator}conf" />
+
+	<target name="compile-xpathengine" description="Compiles the XPath engine">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src/edu/upenn/cis455/xpathengine" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
 		</javac>
 	</target>
-	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects" />
-	<target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
-		<copy todir="${ant.library.dir}">
-			<fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar" />
-		</copy>
-		<unzip dest="${ant.library.dir}">
-			<patternset includes="jdtCompilerAdapter.jar" />
-			<fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar" />
-		</unzip>
+
+	<target name="compile-storage" depends="compile-xpathengine" description="Compiles the storage system">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src/edu/upenn/cis455/storage" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
-	<target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
-		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
-		<antcall target="build" />
+
+	<target name="compile-server" description="Compiles the HW1 server">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src/edu/upenn/cis455/webserver" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
-	<target name="CrawlerTest0.testPoolSize">
-		<mkdir dir="${junit.output.dir}" />
-		<junit fork="yes" printsummary="withOutAndErr">
-			<formatter type="xml" />
-			<test name="test.edu.upenn.cis455.CrawlerTest0" todir="${junit.output.dir}" />
-			<jvmarg line="-ea" />
-			<classpath refid="HW2.classpath" />
-		</junit>
+
+	<target name="compile-server-utils" description="Compiles the HW1 server utils">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src/edu/upenn/cis455/webserver/utils" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
-	<target name="CrawlerTest1">
-		<mkdir dir="${junit.output.dir}" />
-		<junit fork="yes" printsummary="withOutAndErr">
-			<formatter type="xml" />
-			<test name="test.edu.upenn.cis455.CrawlerTest1" todir="${junit.output.dir}" />
-			<jvmarg line="-ea" />
-			<classpath refid="HW2.classpath" />
-		</junit>
+					
+	<target name="compile-crawler" depends="compile-storage,compile-server,compile-server-utils" description="Compiles the crawler">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src/edu/upenn/cis455/crawler" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
-	<target name="DbTest0">
-		<mkdir dir="${junit.output.dir}" />
-		<junit fork="yes" printsummary="withOutAndErr">
-			<formatter type="xml" />
-			<test name="test.edu.upenn.cis455.DbTest0" todir="${junit.output.dir}" />
-			<jvmarg line="-ea" />
-			<classpath refid="HW2.classpath" />
-		</junit>
+
+	<target name="compile-servlet" depends="compile-xpathengine,compile-storage" description="Compiles the servlet">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src/edu/upenn/cis455/servlet" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
-	<target name="DbTest1">
-		<mkdir dir="${junit.output.dir}" />
-		<junit fork="yes" printsummary="withOutAndErr">
-			<formatter type="xml" />
-			<test name="test.edu.upenn.cis455.DbTest1" todir="${junit.output.dir}" />
-			<jvmarg line="-ea" />
-			<classpath refid="HW2.classpath" />
-		</junit>
+
+	<target name="compile-tests" description="compiles test Java source code">
+		<mkdir dir="${test-classes.dir}" />
+		<javac srcdir="${src.test.dir}${file.separator}" destdir="${test-classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<pathelement path="${classes.dir}" />
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
-	<target name="servlet" depends="build">
-		<java classname="edu.upenn.cis455.webserver.HttpServer" failonerror="true" fork="yes">
-			<arg line="8080 / conf/web.xml" />
-			<classpath refid="HW2.classpath" />
+
+	<target name="test" depends="compile-tests,compile-crawler,compile-servlet" description="Run tests">
+		<java failonerror="true" fork="true" classname="junit.textui.TestRunner">
+			<classpath>
+				<pathelement location="${test-classes.dir}" />
+				<pathelement location="${classes.dir}" />
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+			<arg value="test.edu.upenn.cis455.RunAllTests" />
 		</java>
 	</target>
-	<target name="RunAllTests">
-		<mkdir dir="${junit.output.dir}" />
-		<junit fork="yes" printsummary="withOutAndErr">
-			<formatter type="xml" />
-			<test name="test.edu.upenn.cis455.RunAllTests" todir="${junit.output.dir}" />
-			<jvmarg line="-ea" />
-			<classpath refid="HW2.classpath" />
-		</junit>
+
+	<target name="clean" description="Deletes all the compiled files">
+		<delete>
+		   <fileset dir="database">
+		      <include name="*"/>
+		   </fileset>
+		</delete>
+		<delete dir="${build.target.dir}" />
+		<delete file="crawler.jar" />
+		<delete file="servlet.war" />
+		<delete file="submit-hw2.zip" />
 	</target>
-	<target name="crawl" depends="build">
-		<java classname="edu.upenn.cis455.crawler.XPathCrawler" failonerror="true" fork="yes">
-			<arg line="http://crawltest.cis.upenn.edu/ database 1000" />
-			<classpath refid="HW2.classpath" />
-		</java>
-	</target>
-	<target name="junitreport">
-		<junitreport todir="${junit.output.dir}">
-			<fileset dir="${junit.output.dir}">
-				<include name="TEST-*.xml" />
+
+	<target name="crawler-jar" depends="compile-crawler" description="Makes the JAR file for the crawler">
+		<delete file="crawler.jar" />
+		<jar destfile="crawler.jar" update="true">
+			<manifest>
+				<attribute name="Main-Class" value="edu.upenn.cis455.crawler.XPathCrawler" />
+			</manifest>
+			<fileset dir="${classes.dir}">
+				<include name="**/*.class" />
 			</fileset>
-			<report format="frames" todir="${junit.output.dir}" />
-		</junitreport>
+		</jar>
 	</target>
+
+	<target name="servlet-war" depends="compile-servlet" description="Makes the WAR file for the servlet">
+		<delete file="servlet.war" />
+		<copy file="${conf.dir}${file.separator}web.xml" tofile="${web-inf.dir}${file.separator}web.xml" overwrite="true" />
+		<copy todir="${web-inf.lib.dir}" overwrite="true">
+			<fileset dir="${inputlib.dir}">
+				<include name="*.jar" />
+			</fileset>
+		</copy>
+		<jar destfile="servlet.war" update="true">
+			<fileset dir="target">
+				<include name="**/*.class" />
+				<include name="**/*.jar" />
+				<include name="WEB-INF/web.xml" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="build" depends="crawler-jar,servlet-war">
+	</target>
+
 	<target name="pack" description="Create an archive for submission">
 		<zip destfile="submit-hw2.zip">
 			<zipfileset dir="." excludes="target/**,examples/**,**/*.class,submit-hw2.zip,servlet.war,crawler.jar" />
 		</zip>
 	</target>
+
+	<target name="crawl" description="Crawl..." depends="build">
+		<java fork="true" classname="edu.upenn.cis455.crawler.XPathCrawler">
+			<classpath>
+				<pathelement location="${classes.dir}"/>
+				<fileset dir="${inputlib.dir}" includes="**/*.jar" />
+			</classpath>
+			<arg line="http://crawltest.cis.upenn.edu/ database 1000" />
+		</java>
+	</target>
+
 </project>

@@ -62,7 +62,7 @@ public class CrawlerRunnable implements Runnable {
 			Long crt = new Date().getTime();
 			Long duration = crt - lastVisit;
 
-			System.out.println(duration);
+			//System.out.println(duration);
 			if (delay * 1000 < duration) {
 				m_crawler.m_hostLastVisit.put(host, crt);
 				return;
@@ -93,7 +93,7 @@ public class CrawlerRunnable implements Runnable {
 			int port = url.getPort();
 			if (port != -1)
 				host += ":" + port;
-			
+
 			if (!uri.isEmpty()) {
 				// we should have already got the robots.txt if the host has
 				RobotsTxtInfo info = m_crawler.m_robotsTxt.get(host);
@@ -119,7 +119,7 @@ public class CrawlerRunnable implements Runnable {
 			headRequest.addHeader("host", host);
 			headRequest.addHeader("user-agent", "cis455crawler");
 			// crawl delay
-			// hostVisitDelay(host);
+			hostVisitDelay(host);
 			// System.out.println(m_URL + ": HEAD");
 			SimpleHttpResponse headResponse = client.execute(headRequest);
 			if (headResponse == null) {
@@ -153,7 +153,7 @@ public class CrawlerRunnable implements Runnable {
 						getRequest.addHeader("host", host);
 						getRequest.addHeader("user-agent", "cis455crawler");
 						// crawl delay
-						// hostVisitDelay(host);
+						hostVisitDelay(host);
 						SimpleHttpResponse getResponse = client.execute(getRequest);
 						if (getResponse == null)
 							return;
