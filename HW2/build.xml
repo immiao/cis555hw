@@ -6,6 +6,7 @@
               as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="HW2">
 	<property environment="env" />
+	<property name="junit.output.dir" value="junit" />
 	<property name="debuglevel" value="source,lines,vars" />
 	<property name="target" value="1.8" />
 	<property name="source" value="1.8" />
@@ -21,21 +22,23 @@
 		<mkdir dir="target/classes/" />
 		<copy includeemptydirs="false" todir="target/classes/">
 			<fileset dir="src">
-				<exclude name="**/*.launch" />
 				<exclude name="**/*.java" />
 			</fileset>
 		</copy>
 	</target>
 	<target name="clean">
 		<delete dir="target/classes/" />
+		<delete dir="database/**" />
 	</target>
 	<target depends="clean" name="cleanall" />
 	<target depends="build-subprojects,build-project" name="build" />
 	<target name="build-subprojects" />
 	<target depends="init" name="build-project">
 		<echo message="${ant.project.name}: ${ant.file}" />
-		<javac debug="true" debuglevel="${debuglevel}" destdir="target/classes/" includeantruntime="false" source="${source}" target="${target}">
+		<javac failonerror="false" debug="true" debuglevel="${debuglevel}" destdir="target/classes/" includeantruntime="false" source="${source}" target="${target}">
 			<src path="src" />
+			<include name="edu/upenn/cis455/**" />
+			<include name="test/edu/upenn/cis455/**" />
 			<classpath refid="HW2.classpath" />
 		</javac>
 	</target>
@@ -53,17 +56,70 @@
 		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
 		<antcall target="build" />
 	</target>
-	<target name="servlet">
+	<target name="CrawlerTest0.testPoolSize">
+		<mkdir dir="${junit.output.dir}" />
+		<junit fork="yes" printsummary="withOutAndErr">
+			<formatter type="xml" />
+			<test name="test.edu.upenn.cis455.CrawlerTest0" todir="${junit.output.dir}" />
+			<jvmarg line="-ea" />
+			<classpath refid="HW2.classpath" />
+		</junit>
+	</target>
+	<target name="CrawlerTest1">
+		<mkdir dir="${junit.output.dir}" />
+		<junit fork="yes" printsummary="withOutAndErr">
+			<formatter type="xml" />
+			<test name="test.edu.upenn.cis455.CrawlerTest1" todir="${junit.output.dir}" />
+			<jvmarg line="-ea" />
+			<classpath refid="HW2.classpath" />
+		</junit>
+	</target>
+	<target name="DbTest0">
+		<mkdir dir="${junit.output.dir}" />
+		<junit fork="yes" printsummary="withOutAndErr">
+			<formatter type="xml" />
+			<test name="test.edu.upenn.cis455.DbTest0" todir="${junit.output.dir}" />
+			<jvmarg line="-ea" />
+			<classpath refid="HW2.classpath" />
+		</junit>
+	</target>
+	<target name="DbTest1">
+		<mkdir dir="${junit.output.dir}" />
+		<junit fork="yes" printsummary="withOutAndErr">
+			<formatter type="xml" />
+			<test name="test.edu.upenn.cis455.DbTest1" todir="${junit.output.dir}" />
+			<jvmarg line="-ea" />
+			<classpath refid="HW2.classpath" />
+		</junit>
+	</target>
+	<target name="servlet" depends="build">
 		<java classname="edu.upenn.cis455.webserver.HttpServer" failonerror="true" fork="yes">
 			<arg line="8080 / conf/web.xml" />
 			<classpath refid="HW2.classpath" />
 		</java>
 	</target>
-	<target name="crawl">
+	<target name="RunAllTests">
+		<mkdir dir="${junit.output.dir}" />
+		<junit fork="yes" printsummary="withOutAndErr">
+			<formatter type="xml" />
+			<test name="test.edu.upenn.cis455.RunAllTests" todir="${junit.output.dir}" />
+			<jvmarg line="-ea" />
+			<classpath refid="HW2.classpath" />
+		</junit>
+	</target>
+	<target name="crawl" depends="build">
 		<java classname="edu.upenn.cis455.crawler.XPathCrawler" failonerror="true" fork="yes">
 			<arg line="http://crawltest.cis.upenn.edu/ database 1000" />
 			<classpath refid="HW2.classpath" />
 		</java>
+	</target>
+	<target name="junitreport">
+		<junitreport todir="${junit.output.dir}">
+			<fileset dir="${junit.output.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${junit.output.dir}" />
+		</junitreport>
 	</target>
 	<target name="pack" description="Create an archive for submission">
 		<zip destfile="submit-hw2.zip">
