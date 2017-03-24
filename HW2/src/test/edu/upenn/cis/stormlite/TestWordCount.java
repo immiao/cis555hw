@@ -54,11 +54,13 @@ public class TestWordCount {
         builder.setSpout(WORD_SPOUT, spout, 1);
         
         // Four parallel word counters, each of which gets specific words
+        // new BoltDeclarer and set the key
+        // LocalCluster will establish the relationship in create router
         builder.setBolt(COUNT_BOLT, bolt, 4).fieldsGrouping(WORD_SPOUT, new Fields("word"));
         
         // A single printer bolt (and officially we round-robin)
         builder.setBolt(PRINT_BOLT, printer, 4).shuffleGrouping(COUNT_BOLT);
-
+        
         LocalCluster cluster = new LocalCluster();
         Topology topo = builder.createTopology();
 
@@ -75,7 +77,7 @@ public class TestWordCount {
         
         cluster.submitTopology("test", config, 
         		builder.createTopology());
-        Thread.sleep(30000);
+        Thread.sleep(3000);
         cluster.killTopology("test");
         cluster.shutdown();
         System.exit(0);

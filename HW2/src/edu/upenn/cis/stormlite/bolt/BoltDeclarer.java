@@ -39,7 +39,7 @@ public class BoltDeclarer implements Serializable {
 	/**
 	 * The stream ID
 	 */
-	String stream;
+	String stream; // source
 	
 	/**
 	 * The kind of stream (how it routes among multiple executors)

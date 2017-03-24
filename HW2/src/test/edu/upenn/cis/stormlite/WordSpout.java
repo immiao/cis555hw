@@ -67,7 +67,6 @@ public class WordSpout implements IRichSpout {
     	log.debug("Starting spout");
     }
 
-
     /**
      * Initializes the instance of the spout (note that there can be multiple
      * objects instantiated)
