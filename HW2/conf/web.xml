@@ -25,12 +25,36 @@
 		<servlet-name>xpath</servlet-name>
 		<url-pattern>/register.jsp</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet-mapping>
 		<servlet-name>xpath</servlet-name>
 		<url-pattern>/lookup</url-pattern>
 	</servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>xpath</servlet-name>
+		<url-pattern>/create</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>xpath</servlet-name>
+		<url-pattern>/delete</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>xpath</servlet-name>
+		<url-pattern>/subscribe</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>xpath</servlet-name>
+		<url-pattern>/unsubscribe</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>xpath</servlet-name>
+		<url-pattern>/show</url-pattern>
+	</servlet-mapping>
 	<!-- add any additional servlets and servlet mappings here -->
 
 </web-app>

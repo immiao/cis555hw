@@ -70,7 +70,7 @@ public class XPathServlet extends HttpServlet {
 		HashMap<String, Vector<String>> m = (HashMap<String, Vector<String>>) request.getParameterMap();
 		
 		PrintWriter out = response.getWriter();
-		
+		//System.out.println(request.getServletPath() + " HAHA");
 		if (m.containsKey("url")) {
 			String url = m.get("url").get(0);
 			String content = HttpServer.dbEnv.getPageContent(url);
@@ -88,7 +88,8 @@ public class XPathServlet extends HttpServlet {
 			out.println("<input type=\"submit\" name=\"create_button\" value=\"Create New Account\" />");
 			out.println("</form>");
 		} else {
-			out.println("<p>Username: " + session.getAttribute("username") + "</p>");
+			String usr = session.getAttribute("username").toString();
+			out.println("<p>Username: " + usr + "</p>");
 			out.println("<form action=\"/register.jsp\" method=\"post\" />");
 			out.println("<input type=\"submit\" name=\"logout_button\" value=\"Logout\" />");
 			out.println("</form>");

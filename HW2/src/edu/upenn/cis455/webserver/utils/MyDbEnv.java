@@ -120,17 +120,22 @@ public class MyDbEnv {
 		StringBinding.stringToEntry(usr, searchKey);
 		Cursor cursor = m_accountDb.openCursor(null, null);
 		OperationStatus retVal = cursor.getSearchKey(searchKey, foundVal, LockMode.DEFAULT);
+		cursor.close();
 		if (retVal == OperationStatus.SUCCESS) {
 			System.out.println("Username already exists! Create failed!");
 			return;
 		}
-
+		
 		// if not, insert the new account
 		DatabaseEntry keyEntry = new DatabaseEntry();
 		DatabaseEntry dataEntry = new DatabaseEntry();
-
+		EntryBinding dataBinding = new SerialBinding(m_classCatalog, UserInfo.class);
+		UserInfo info = new UserInfo();
+		info.psw = psw;
+		
 		StringBinding.stringToEntry(usr, keyEntry);
-		StringBinding.stringToEntry(psw, dataEntry);
+		//StringBinding.stringToEntry(psw, dataEntry);
+		dataBinding.objectToEntry(info, dataEntry);
 		Transaction txn = m_env.beginTransaction(null, null);
 		OperationStatus status = m_accountDb.put(txn, keyEntry, dataEntry);
 		if (status != OperationStatus.SUCCESS) {
@@ -145,8 +150,13 @@ public class MyDbEnv {
 		StringBinding.stringToEntry(usr, searchKey);
 		Cursor cursor = m_accountDb.openCursor(null, null);
 		OperationStatus retVal = cursor.getSearchKey(searchKey, foundVal, LockMode.DEFAULT);
-		if (retVal == OperationStatus.SUCCESS)
-			return StringBinding.entryToString(foundVal);
+		cursor.close();
+		EntryBinding dataBinding = new SerialBinding(m_classCatalog, UserInfo.class);
+		
+		if (retVal == OperationStatus.SUCCESS) {
+			UserInfo info = (UserInfo)dataBinding.entryToObject(foundVal);
+			return info.psw;
+		}
 		return null;
 	}
 	
@@ -175,6 +185,7 @@ public class MyDbEnv {
 		StringBinding.stringToEntry(key.toString(), searchKey);
 		Cursor cursor = m_pageInfoDb.openCursor(null, null);
 		OperationStatus retVal = cursor.getSearchKey(searchKey, foundVal, LockMode.DEFAULT);
+		cursor.close();
 		if (retVal == OperationStatus.SUCCESS) {
 			PageInfo p = (PageInfo)dataBinding.entryToObject(foundVal);
 			//System.out.println(p.getLastModified());

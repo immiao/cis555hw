@@ -10,10 +10,7 @@ public class RunAllTests extends TestCase
   {
     try {
       Class[]  testClasses = {
-    		  CrawlerTest0.class,
-    		  CrawlerTest1.class,
-    		  DbTest0.class,
-    		  DbTest1.class
+    		  XPathEngineTest.class
       };   
       
       return new TestSuite(testClasses);

@@ -294,7 +294,7 @@ public class HttpParser {
 		String url = "http://" + hostName + dir;
 
 		MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap, paramsMap, serverName, protocol,
-				null, null, null, query, dir, url, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
+				null, dir, null, query, uri.toString(), url, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
 				m_servletContext, reqSession);
 		MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
 		if (date != null)

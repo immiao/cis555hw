@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.StringTokenizer;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +27,9 @@ import edu.upenn.cis.stormlite.TopologyBuilder;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis455.webserver.utils.MyDbEnv;
+import edu.upenn.cis455.xpathengine.XPathEngineImpl;
+import edu.upenn.cis455.xpathengine.XPathEngine;
+import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 import test.edu.upenn.cis.stormlite.PrintBolt;
 import test.edu.upenn.cis.stormlite.WordCounter;
 import test.edu.upenn.cis.stormlite.WordSpout;
@@ -212,7 +216,19 @@ public class XPathCrawler {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		//XPathEngineFactory f = new XPathEngineFactory();
+		XPathEngineImpl x = (XPathEngineImpl) XPathEngineFactory.getXPathEngine();
+		String[] str = {"/foo/bar/xyz",
+			"/foo/bar[@att=\"123\"]",
+			"/xyz/abc[contains(text(),\"someSubstring\")]",
+				"/a/b/c[text()=\"theEntireText\"]",
+				"/blah[anotherElement]",
+				"/this/that[something/else]",
+				"/d/e/f[foo[text()=\"something\"]][bar]",
+				"/a/b/c[text() =  \"whiteSpaceShouldNotMatter\"]"};
+		x.setXPaths(str);
+		x.print();
+		
 		cluster.submitTopology("test", config, builder.createTopology());
 		Thread.sleep(300000);
 		cluster.killTopology("test");
