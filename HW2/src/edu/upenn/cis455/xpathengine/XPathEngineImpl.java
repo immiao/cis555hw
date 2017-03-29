@@ -2,6 +2,7 @@ package edu.upenn.cis455.xpathengine;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -21,7 +22,7 @@ class Tokenizer {
 	}
 
 	private boolean isSpecialChar(char c) {
-		return c == '/' || c == '\"' || c == ')' || c == '=' || c == '(' || c == '[' || c == ']' || c == ',';
+		return c == '/' || c == '\"' || c == ')' || c == '=' || c == '(' || c == '[' || c == ']' || c == ',' || c == '@';
 	}
 
 	public String nextToken() {
@@ -45,10 +46,6 @@ class Tokenizer {
 		if (m_index + 8 <= length && m_str.substring(m_index, m_index + 8).equals("contains")) {
 			m_index += 8;
 			return new String("contains");
-		}
-		if (m_index + 4 <= length && m_str.substring(m_index, m_index + 4).equals("@att")) {
-			m_index += 4;
-			return new String("@att");
 		}
 		//throw new InvalidXPathException();
 		int startIndex = m_index;
@@ -87,9 +84,7 @@ class Tokenizer {
 		if (m_index + 8 <= length && m_str.substring(m_index, m_index + 8).equals("contains")) {
 			return new String("contains");
 		}
-		if (m_index + 4 <= length && m_str.substring(m_index, m_index + 4).equals("@att")) {
-			return new String("@att");
-		}
+
 		int startIndex = m_index;
 		int index = m_index;
 		while (index < length && !isSpecialChar(m_str.charAt(index))) {
@@ -102,7 +97,7 @@ class Tokenizer {
 
 class XPathNode {
 	public String nodeName = null;
-	public ArrayList<String> att = new ArrayList<String>();
+	public HashMap<String, String> attr = new HashMap<String, String>();
 	public ArrayList<String> exactContent = new ArrayList<String>();
 	public ArrayList<String> containContent = new ArrayList<String>();
 	public ArrayList<XPathNode> containNode = new ArrayList<XPathNode>();
@@ -118,13 +113,14 @@ public class XPathEngineImpl implements XPathEngine {
 	private Tokenizer[] m_tokenizer;
 	private Document m_document;
 	private XPathNode[] m_XPathRoot;
+	private boolean[] m_isValid;
 
 	public void dfs(int i, XPathNode node, String indent) {
 		if (node == null)
 			return;
 		System.out.println(indent + "nodeName: " + node.nodeName);
-		for (String s : node.att)
-			System.out.println(indent + "att: " + s);
+		for (String s : node.attr.keySet())
+			System.out.println(indent + "att: [" + s + ", " + node.attr.get(s) + "]");
 		for (String s : node.exactContent)
 			System.out.println(indent + "exactContent: " + s);
 		for (String s : node.containContent)
@@ -195,17 +191,18 @@ public class XPathEngineImpl implements XPathEngine {
 			isValidToken(next, "\"");
 			next = m_tokenizer[i].nextToken();
 			isValidToken(next, ")");
-		} else if (tempNext.equals("@att")) {
-			next = m_tokenizer[i].nextToken(); // @att
+		} else if (tempNext.equals("@")) {
+			next = m_tokenizer[i].nextToken(); // @
+			String attrName = m_tokenizer[i].nextToken(); // attribute name
 			next = m_tokenizer[i].nextToken(); // =
 			isValidToken(next, "=");
 			next = m_tokenizer[i].nextToken(); // "
 			isValidToken(next, "\"");
-			next = m_tokenizer[i].nextString(); // attribute name
+			next = m_tokenizer[i].nextString(); // attribute value
 			if (next == null)
 				throw new InvalidXPathException();
 			else
-				crtNode.att.add(next);
+				crtNode.attr.put(attrName, next);
 			next = m_tokenizer[i].nextToken(); // "
 			isValidToken(next, "\"");
 		} else {
@@ -262,23 +259,29 @@ public class XPathEngineImpl implements XPathEngine {
 		m_xpaths = s;
 		m_tokenizer = new Tokenizer[s.length];
 		m_XPathRoot = new XPathNode[s.length];
+		m_isValid = new boolean[s.length];
 		for (int i = 0; i < s.length; i++) {
 			m_tokenizer[i] = new Tokenizer(s[i]);
 			m_XPathRoot[i] = new XPathNode();
 
 			try {
 				buildXPathTree(i);
+				m_isValid[i] = true;
 			} catch (InvalidXPathException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				m_isValid[i] = false;
 			}
 		}
 	}
 	
 	// verify if the attributes of a node match
 	private boolean isValidElement(int i, XPathNode node, Element e) {
-		for (String s : node.att) {
-			if (e.getAttribute(s) == null)
+		for (String s : node.attr.keySet()) {
+			String value = e.getAttribute(s);
+			if (value == null)
+				return false;
+			if (!node.attr.get(s).equals(value))
 				return false;
 		}
 		for (String s : node.containContent) {
@@ -291,16 +294,7 @@ public class XPathEngineImpl implements XPathEngine {
 		}
 		
 		for (XPathNode n : node.containNode) {
-			boolean isMatched = false;
-			NodeList nodeList = e.getElementsByTagName(n.nodeName);
-			int length = nodeList.getLength();
-			for (int j = 0; j < length; j++) {
-				if (dfsValid(i, n.nextNode, (Element)nodeList.item(j))) {
-					isMatched = true;
-					break;
-				}
-			}
-			if (!isMatched)
+			if (!dfsValid(i, n, e))
 				return false;
 		}
 		return true;
@@ -309,40 +303,69 @@ public class XPathEngineImpl implements XPathEngine {
 	private boolean dfsValid(int i, XPathNode node, Element parentElement) {
 		if (node == null)
 			return true;
-		NodeList nodeList = parentElement.getElementsByTagName(node.nodeName);
-		int length = nodeList.getLength();
-		if (length == 0)
-			return false;
+//		NodeList nodeList = parentElement.getElementsByTagName(node.nodeName);
+//		
+//		int length = nodeList.getLength();
+//		if (length == 0)
+//			return false;
+//		
+//		for (int j = 0; j < length; j++) {
+//			Element e = (Element)nodeList.item(j);
+//			if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
+//				return true;
+//		}
+//		return false;
+		NodeList nodeList = parentElement.getChildNodes();	
 		
+		int length = nodeList.getLength();
 		for (int j = 0; j < length; j++) {
 			Element e = (Element)nodeList.item(j);
-			if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
-				return true;
+			if (e.getNodeName().equals(node.nodeName)) {
+				if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
+					return true;
+			}
 		}
 		return false;
 	}
 	
 	public boolean isValid(int i) {
-		/* TODO: Check which of the XPath expressions are valid */
-		NodeList nodeList = m_document.getElementsByTagName(m_XPathRoot[i].nodeName);
-		int length = nodeList.getLength();
-		if (length == 0)
+		// I check the xpath in setXPaths()->buildXPathTree(). It will throw an exception if the xpath is invalid
+		return m_isValid[i];
+	}
+
+	public boolean isMatched(int i) {
+//		NodeList nodeList = m_document.getElementsByTagName(m_XPathRoot[i].nodeName);
+//		int length = nodeList.getLength();
+//		if (length == 0)
+//			return false;
+//		for (int j = 0; j < length; j++) {
+//			Element e = (Element)nodeList.item(j);
+//			if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
+//				return true;
+//		}
+//		return false;
+		if (!m_isValid[i])
 			return false;
+		
+		NodeList nodeList = m_document.getChildNodes();
+		int length = nodeList.getLength();
 		for (int j = 0; j < length; j++) {
 			Element e = (Element)nodeList.item(j);
-			if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
-				return true;
+			
+			if (e.getNodeName().equals(m_XPathRoot[i].nodeName)) {
+				if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
+					return true;
+			}
 		}
 		return false;
 	}
-
+	
 	public boolean[] evaluate(Document d) {
 		/* TODO: Check whether the document matches the XPath expressions */
 		m_document = d;
-		//System.out.println("HELLO");
 		boolean[] result = new boolean[m_xpaths.length];
 		for (int i = 0; i < m_xpaths.length; i++) {
-			result[i] = isValid(i);
+			result[i] = isMatched(i);
 		}
 		print();
 		return result;

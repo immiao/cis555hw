@@ -30,9 +30,6 @@ import edu.upenn.cis455.webserver.utils.MyDbEnv;
 import edu.upenn.cis455.xpathengine.XPathEngineImpl;
 import edu.upenn.cis455.xpathengine.XPathEngine;
 import edu.upenn.cis455.xpathengine.XPathEngineFactory;
-import test.edu.upenn.cis.stormlite.PrintBolt;
-import test.edu.upenn.cis.stormlite.WordCounter;
-import test.edu.upenn.cis.stormlite.WordSpout;
 
 public class XPathCrawler {
 	public static XPathCrawlerFactory f = new XPathCrawlerFactory();

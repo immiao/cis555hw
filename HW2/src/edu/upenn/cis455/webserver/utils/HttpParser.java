@@ -285,7 +285,6 @@ public class HttpParser {
 				if (nameValue.length == 2 && nameValue[0].equals("jsession-id")) {
 					reqSession = HttpServer.m_sessionMap.get(nameValue[1]);
 				}
-
 			}
 		}
 
