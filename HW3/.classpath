@@ -3,5 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/HW2/lib/jackson-databind-2.9.0-20161012.002007-91.jar"/>
 	<classpathentry kind="output" path="classes/"/>
 </classpath>

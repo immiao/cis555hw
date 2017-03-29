@@ -100,12 +100,12 @@ public class HttpParser {
 		}
 		dir = uri.getPath();
 		query = uri.getQuery();
-
+		//System.out.println(query);
 		// parse query string
 		if (query != null && !query.isEmpty()) {
 			String[] pairArr = query.split("&");
 			for (String p : pairArr) {
-				String[] keyValue = p.split("=");
+				String[] keyValue = p.split("=", 2);
 				if (keyValue.length != 2)
 					return false;
 				else {
