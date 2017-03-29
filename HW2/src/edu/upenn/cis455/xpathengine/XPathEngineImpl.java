@@ -3,13 +3,11 @@ package edu.upenn.cis455.xpathengine;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
+import java.util.List;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.xml.sax.helpers.DefaultHandler;
 
 class Tokenizer {
@@ -278,18 +276,18 @@ public class XPathEngineImpl implements XPathEngine {
 	// verify if the attributes of a node match
 	private boolean isValidElement(int i, XPathNode node, Element e) {
 		for (String s : node.attr.keySet()) {
-			String value = e.getAttribute(s);
+			String value = e.attr(s);
 			if (value == null)
 				return false;
 			if (!node.attr.get(s).equals(value))
 				return false;
 		}
 		for (String s : node.containContent) {
-			if (!e.getTextContent().contains(s))
+			if (!e.text().contains(s))
 				return false;
 		}
 		for (String s : node.exactContent) {
-			if (!e.getTextContent().equals(s))
+			if (!e.text().equals(s))
 				return false;
 		}
 		
@@ -315,12 +313,28 @@ public class XPathEngineImpl implements XPathEngine {
 //				return true;
 //		}
 //		return false;
-		NodeList nodeList = parentElement.getChildNodes();	
 		
-		int length = nodeList.getLength();
+//		NodeList nodeList = parentElement.getChildNodes();	
+//		
+//		int length = nodeList.getLength();
+//		for (int j = 0; j < length; j++) {
+//			Element e = (Element)nodeList.item(j);
+//			if (e.getNodeName().equals(node.nodeName)) {
+//				if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
+//					return true;
+//			}
+//		}
+//		return false;
+		
+		List<Element> nodeList = parentElement.children();	
+		
+		int length = nodeList.size();
+		
 		for (int j = 0; j < length; j++) {
-			Element e = (Element)nodeList.item(j);
-			if (e.getNodeName().equals(node.nodeName)) {
+			Element e = nodeList.get(j);
+//			if (parentElement.tagName().equals("to"))
+//				System.out.println(e.tagName());
+			if (e.tagName().equals(node.nodeName)) {
 				if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
 					return true;
 			}
@@ -344,20 +358,36 @@ public class XPathEngineImpl implements XPathEngine {
 //				return true;
 //		}
 //		return false;
+		
+//		if (!m_isValid[i])
+//			return false;
+//		
+//		NodeList nodeList = m_document.getChildNodes();
+//		int length = nodeList.getLength();
+//		for (int j = 0; j < length; j++) {
+//			Element e = (Element)nodeList.item(j);
+//			
+//			if (e.getNodeName().equals(m_XPathRoot[i].nodeName)) {
+//				if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
+//					return true;
+//			}
+//		}
+//		return false;
+		
 		if (!m_isValid[i])
 			return false;
-		
-		NodeList nodeList = m_document.getChildNodes();
-		int length = nodeList.getLength();
-		for (int j = 0; j < length; j++) {
-			Element e = (Element)nodeList.item(j);
-			
-			if (e.getNodeName().equals(m_XPathRoot[i].nodeName)) {
-				if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
-					return true;
-			}
-		}
-		return false;
+		return dfsValid(i, m_XPathRoot[i], m_document);
+//		List<Element> nodeList = m_document.body().children();
+//		int length = nodeList.size();
+//		for (int j = 0; j < length; j++) {
+//			Element e = nodeList.get(j);
+//			
+//			if (e.tagName().equals(m_XPathRoot[i].nodeName)) {
+//				if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
+//					return true;
+//			}
+//		}
+		//return false;
 	}
 	
 	public boolean[] evaluate(Document d) {
@@ -379,6 +409,12 @@ public class XPathEngineImpl implements XPathEngine {
 
 	@Override
 	public boolean[] evaluateSAX(InputStream document, DefaultHandler handler) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean[] evaluate(org.w3c.dom.Document d) {
 		// TODO Auto-generated method stub
 		return null;
 	}

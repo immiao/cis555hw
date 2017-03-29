@@ -21,7 +21,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
-import org.w3c.dom.Document;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 import org.xml.sax.SAXException;
 
 import com.sun.org.apache.xml.internal.utils.DOMBuilder;
@@ -36,39 +37,43 @@ public class XPathEngineTest extends TestCase {
 	public void testValidXml() throws ParserConfigurationException, SAXException, IOException {
 		String xml = new String();
 		//File file = new File("test.html");
-		String html = new String(Files.readAllBytes(Paths.get("weather.xml")));
+		String html = new String(Files.readAllBytes(Paths.get("euro2.xml")));
 		org.jsoup.nodes.Document jdoc = Jsoup.parse(html);
-		System.out.println(jdoc.toString());
-		W3CDom w3cDom = new W3CDom();
-		org.w3c.dom.Document w3cDoc = w3cDom.fromJsoup(jdoc);
-		System.out.println(w3cDoc.toString());
+//		System.out.println(jdoc.toString());
+//		W3CDom w3cDom = new W3CDom();
+//		org.w3c.dom.Document w3cDoc = w3cDom.fromJsoup(jdoc);
+//		System.out.println(w3cDoc.toString());
 		xml += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 		xml += "<note>";
 		xml += "<to>text()</to>";
 		xml += "<to src=\"abc.gif\" date=\"12/11/1993\">Tove</to>";
 		xml += "<from>Jani</from>";
 		xml += "<heading>Reminder</heading>";
-		xml += "<body>Don't forget me this weekend!</body>";
+		xml += "<tt>Don't forget me this weekend!</tt>";
 		xml += "<nest1><nest2></nest2></nest1>";
 		xml += "<div><from att1=\"test\"><heading headingAtt=\"test\">Reminder</heading></from></div>";
 		xml += "</note>";
-		DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = f.newDocumentBuilder();
-		Document doc = builder.parse(new ByteArrayInputStream(xml.getBytes()));
+//		DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+//		DocumentBuilder builder = f.newDocumentBuilder();
+//		Document doc = builder.parse(new ByteArrayInputStream(xml.getBytes()));
+		Document jxmldoc = Jsoup.parse(xml, "", Parser.xmlParser());
+		System.out.println(jxmldoc.toString());
 		String[] xpath = {"/note/to",
 				"/note/to[text() = \"text()\"]",
 				"/note/to[@src=\"abc.gif\"]",
 				"/note/to[@src=\"abc.gif\"][@date=\"12/11/1993\"]",
-				"/note/body[text()=\"Don't forget me this weekend!\"]",
-				"/note/body[contains(text(), \"forget\")]",
+				"/note/tt[text()=\"Don't forget me this weekend!\"]",
+				"/note/tt[contains(text(), \"forget\")]",
 				"/note/div[from[@att1=\"test\"]/heading]",
 				"/note/div/from/heading[contains(text(), \"min\")]",
 				"/note/div[from[@att1=\"test\"]/heading[@headingAtt=\"test\"][contains(text(), \"min\")]]",
 				"/note/div[from[@att1=\"false\"]/heading]",
 				"/note/nest2",
 				"/rss/channel/title[contains(text(),\"sports\")]"};
+		//String[] xpath = {"/note/tt[text()=\"Don't forget me this weekend!\"]"};
 		m_xpathEngine.setXPaths(xpath);
-		boolean[] b = m_xpathEngine.evaluate(w3cDoc);
+		System.out.println(jdoc.body());
+		boolean[] b = m_xpathEngine.evaluate(jxmldoc);
 		assertEquals(b[0], true);
 		assertEquals(b[1], true);
 		assertEquals(b[2], true);

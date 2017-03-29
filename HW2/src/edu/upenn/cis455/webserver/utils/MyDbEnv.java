@@ -44,7 +44,7 @@ public class MyDbEnv {
 	// private long m_fakeRabinFingerprint = 0;
 
 	public MyDbEnv() {
-
+		
 	}
 
 	public void setup(File envHome, boolean readOnly) throws DatabaseException, NoSuchAlgorithmException {
@@ -90,6 +90,7 @@ public class MyDbEnv {
 		while (cursor.getNext(foundKey, foundVal, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
 			channels.add((ChannelInfo) dataBinding.entryToObject(foundVal));
 		}
+		cursor.close();
 		return channels;
 	}
 
@@ -232,10 +233,10 @@ public class MyDbEnv {
 		DatabaseEntry searchKey = new DatabaseEntry();
 		DatabaseEntry foundVal = new DatabaseEntry();
 		StringBinding.stringToEntry(xpathName, searchKey);
-		Cursor cursor = m_channelDb.openCursor(null, null);
+		Transaction txn = m_env.beginTransaction(null, null);
+		Cursor cursor = m_channelDb.openCursor(txn, null);
 		OperationStatus retVal = cursor.getSearchKey(searchKey, foundVal, LockMode.DEFAULT);
 		EntryBinding dataBinding = new SerialBinding(m_classCatalog, ChannelInfo.class);
-		cursor.close();
 		if (retVal != OperationStatus.SUCCESS) {
 			System.out.println("Channel doesn't exist! Delete failed!");
 			return -1;
@@ -246,7 +247,6 @@ public class MyDbEnv {
 		if (!usr.equals(channel.userName))
 			return -2;
 
-		Transaction txn = null;
 		OperationStatus status = null;
 		
 		// update user's subscribed channel list
@@ -262,9 +262,9 @@ public class MyDbEnv {
 			}
 			updateUserInfo(username, info);
 		}
-
+		
 		// remove channel
-		txn = m_env.beginTransaction(null, null);
+		
 		status = cursor.delete();
 		cursor.close();
 		if (status != OperationStatus.SUCCESS) {
@@ -305,39 +305,39 @@ public class MyDbEnv {
 	public int subscribe(String usr, String xpathName) {
 		// check if channel exists
 		//ChannelInfo howareyou = getChannelInfo(xpathName);
-		//ChannelInfo channel = getChannelInfo(xpathName);
-		ChannelInfo channel = new ChannelInfo();
-		channel.name = "test";
+		ChannelInfo channel = getChannelInfo(xpathName);
+//		ChannelInfo channel = new ChannelInfo();
+//		channel.name = "test";
 //		ChannelInfo newChannel = new ChannelInfo(channel);
 //		newChannel.subscribedUserName.add(usr);
-		updateChannelInfo(channel.name, channel);
-		return 0;
-//		if (channel == null) {
-//			System.out.println("No such channel exists! Subscirbe failed!");
-//			return -1;
-//		}
-//		
-//		UserInfo usrInfo = getUserInfo(usr);
-//		// should succeed
-//		if (usrInfo != null) {
-//			if (usrInfo.subscribed.contains(xpathName))
-//				return -2;
-//			usrInfo.subscribed.add(xpathName);
-//			
-//			updateUserInfo(usr, usrInfo);
-//			channel.subscribedUserName.add(usr);
-//			updateChannelInfo(channel.name, channel);
-//			
-////			Transaction txn = m_env.beginTransaction(null, null);
-////			updateUserInfo(txn, usr, usrInfo);
-////			channel.subscribedUserName.add(usr);
-////			updateChannelInfo(txn, channel.name, channel);
-////			txn.commit();
-//		} else {
-//			System.out.println("No such user exists! Subscribe failed!");
-//			return -1;
-//		}
+//		updateChannelInfo(channel.name, channel);
 //		return 0;
+		if (channel == null) {
+			System.out.println("No such channel exists! Subscirbe failed!");
+			return -1;
+		}
+		
+		UserInfo usrInfo = getUserInfo(usr);
+		// should succeed
+		if (usrInfo != null) {
+			if (usrInfo.subscribed.contains(xpathName))
+				return -2;
+			usrInfo.subscribed.add(xpathName);
+			
+			updateUserInfo(usr, usrInfo);
+			channel.subscribedUserName.add(usr);
+			updateChannelInfo(channel.name, channel);
+			
+//			Transaction txn = m_env.beginTransaction(null, null);
+//			updateUserInfo(txn, usr, usrInfo);
+//			channel.subscribedUserName.add(usr);
+//			updateChannelInfo(txn, channel.name, channel);
+//			txn.commit();
+		} else {
+			System.out.println("No such user exists! Subscribe failed!");
+			return -1;
+		}
+		return 0;
 	}
 
 	// store a MD5 digest for content-seen test

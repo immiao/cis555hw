@@ -159,12 +159,15 @@ public class XPathServlet extends HttpServlet {
 						out.println("<a class=\"inline\" href=\"/subscribe?name=" + channel.name + "\">" + "Subscribe</a>");
 					}
 					
+					System.out.println("CHANNEL USERNAME: " + channel.userName);
 					if (channel.userName.equals(usr)) {
 						out.println("<a class=\"inline\" href=\"/delete?name=" + channel.name + "\">" + "Delete</a>");
 					}
 					
 					out.println("</div>");
 				}
+				
+				//out.println("<a class=\"inline\" href=\"/subscribe?name=test\">Subscribe</a>");
 				
 				out.println("<form action=\"/create\" method=\"get\" />");
 				out.println("XPathName: <input type=\"text\" name=\"name\" /><br/>");
