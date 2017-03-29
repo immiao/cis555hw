@@ -17,6 +17,17 @@
 	<property name="resources.dir" location="${build.dir}${file.separator}resources" />
 	<property name="conf.dir" location="${build.dir}${file.separator}conf" />
 
+	<target name="compile-stormlite" description="Compiles the storage system">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src/edu/upenn/cis/stormlite" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="${inputlib.dir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+			
 	<target name="compile-xpathengine" description="Compiles the XPath engine">
 		<mkdir dir="${classes.dir}" />
 		<javac srcdir="src/edu/upenn/cis455/xpathengine" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
@@ -61,9 +72,10 @@
 		</javac>
 	</target>
 					
-	<target name="compile-crawler" depends="compile-storage,compile-server,compile-server-utils" description="Compiles the crawler">
+	<target name="compile-crawler" depends="compile-stormlite,compile-storage,compile-server,compile-server-utils" description="Compiles the crawler">
 		<mkdir dir="${classes.dir}" />
 		<javac srcdir="src/edu/upenn/cis455/crawler" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<exclude name="CrawlerRunnable.java" />
 			<classpath>
 				<fileset dir="${inputlib.dir}">
 					<include name="*.jar" />

@@ -5,7 +5,7 @@ import java.io.InputStream;
 import org.w3c.dom.Document;
 import org.xml.sax.helpers.DefaultHandler;
 
-interface XPathEngine {
+public interface XPathEngine {
 
 
 	/**

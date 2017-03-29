@@ -8,6 +8,8 @@ public class PageInfo implements Serializable {
 	 */
 	//private static final long serialVersionUID = 1L;
 	private long m_lastModified;
+	public long m_crawledDate;
+	public String m_URL;
 	
 	public PageInfo(long lastModified) {
 		m_lastModified = lastModified;

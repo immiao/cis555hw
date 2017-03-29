@@ -100,12 +100,12 @@ public class HttpParser {
 		}
 		dir = uri.getPath();
 		query = uri.getQuery();
-
+		//System.out.println(query);
 		// parse query string
 		if (query != null && !query.isEmpty()) {
 			String[] pairArr = query.split("&");
 			for (String p : pairArr) {
-				String[] keyValue = p.split("=");
+				String[] keyValue = p.split("=", 2);
 				if (keyValue.length != 2)
 					return false;
 				else {
@@ -285,7 +285,6 @@ public class HttpParser {
 				if (nameValue.length == 2 && nameValue[0].equals("jsession-id")) {
 					reqSession = HttpServer.m_sessionMap.get(nameValue[1]);
 				}
-
 			}
 		}
 
@@ -294,9 +293,9 @@ public class HttpParser {
 		String url = "http://" + hostName + dir;
 
 		MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap, paramsMap, serverName, protocol,
-				null, null, null, query, dir, url, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
+				null, dir, null, query, uri.toString(), url, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
 				m_servletContext, reqSession);
-		MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
+		MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192000);
 		if (date != null)
 			resp.addDateHeader("Date", date.getTime());
 		resp.setStatus(200);

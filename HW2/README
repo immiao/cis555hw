@@ -11,8 +11,6 @@ Did you complete any extra-credit tasks? If so, which ones?
 
 Any special instructions for building and running your solution?
   (include detailed instructions, or write 'None')
-I add 2 packages and rewrite my build.xml, which makes my projects can not pass the auto-checker.
-I've made sure that it works well on my VM.
 
 Did you personally write _all_ the code you are submitting
 (other than code from the course web page)?

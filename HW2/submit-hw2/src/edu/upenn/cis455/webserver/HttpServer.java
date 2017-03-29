@@ -138,7 +138,7 @@ public class HttpServer {
 	}
 
 	static private boolean isShutDown = false;
-	static public ThreadPool threadPool = new ThreadPool(100, 1000);
+	static public ThreadPool threadPool = new ThreadPool(1, 1000);
 	static ServerSocket serverSocket;
 	public static int port;
 	
