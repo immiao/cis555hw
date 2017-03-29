@@ -93,7 +93,14 @@ public class MyDbEnv {
 		cursor.close();
 		return channels;
 	}
-
+	
+	public void addUrlToChannel(String channelName, String url) {
+		ChannelInfo info = getChannelInfo(channelName);
+		if (!info.url.contains(url))
+			info.url.add(url);
+		updateChannelInfo(channelName, info);
+	}
+	
 	private ChannelInfo getChannelInfo(String name) {
 		DatabaseEntry searchKey = new DatabaseEntry();
 		DatabaseEntry foundVal = new DatabaseEntry();
@@ -264,7 +271,6 @@ public class MyDbEnv {
 		}
 		
 		// remove channel
-		
 		status = cursor.delete();
 		cursor.close();
 		if (status != OperationStatus.SUCCESS) {
@@ -272,7 +278,6 @@ public class MyDbEnv {
 			throw new RuntimeException("Delete channel got status " + status);
 		}
 		txn.commit();
-
 		return 0;
 	}
 

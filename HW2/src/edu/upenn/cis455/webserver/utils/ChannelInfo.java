@@ -8,7 +8,6 @@ public class ChannelInfo implements Serializable {
 	public String name;
 	public String xpath;
 	public ArrayList<String> url = new ArrayList<String>();
-	
 	public ArrayList<String> subscribedUserName = new ArrayList<String>();
 	
 	public ChannelInfo(ChannelInfo other) {

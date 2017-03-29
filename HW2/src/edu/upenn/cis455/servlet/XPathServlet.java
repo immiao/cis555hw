@@ -30,18 +30,45 @@ public class XPathServlet extends HttpServlet {
 		out.println("<div class=\"channelheader\">");
 		out.println("<p>Channel name: " + channel.name + ", created by: " + channel.userName);
 		out.println("</div>");
-
+		
+		int counter = 0;
 		for (String url : channel.url) {
+			System.out.println(url + ": " + counter);
 			PageInfo info = HttpServer.dbEnv.getPageInfo(url);
 			Date date = new Date(info.m_crawledDate);
+			out.println("<p>Total :" + counter + "</p>");
+			counter++;
 			out.println("<p>Crawled on: " + format.format(date) + "</p>");
 			out.println("<p>Location: " + url + "</p>");
 			out.println("<div class=\"document\">");
+//			System.out.println(url);
+//			System.out.println(HttpServer.dbEnv.getPageContent(url));
 			out.println(HttpServer.dbEnv.getPageContent(url));
 			out.println("</div>");
+			//out.flush();
 		}
+		
+//		int counter = 0;
+//		String url = "http://crawltest.cis.upenn.edu/nytimes/MiddleEast.xml";
+//		{
+//			System.out.println(url + ": " + counter);
+//			PageInfo info = HttpServer.dbEnv.getPageInfo(url);
+//			Date date = new Date(info.m_crawledDate);
+//			out.println("<p>Total :" + counter + "</p>");
+//			counter++;
+//			out.println("<p>Crawled on: " + format.format(date) + "</p>");
+//			out.println("<p>Location: " + url + "</p>");
+//			out.println("<div class=\"document\">");
+////			System.out.println(url);
+////			System.out.println(HttpServer.dbEnv.getPageContent(url));
+//			out.println(HttpServer.dbEnv.getPageContent(url));
+//			out.println("</div>");
+//			//out.flush();
+//		}
+		// http://crawltest.cis.upenn.edu/nytimes/MiddleEast.xml
 		out.println("</body></html>");
 		out.println("<a href=\"/\">Back to main page.</a>");
+		
 	}
 
 	private void HtmlMessage(PrintWriter out, String[] msg) {

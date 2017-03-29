@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import edu.upenn.cis.stormlite.Topology;
 import edu.upenn.cis.stormlite.TopologyBuilder;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis455.crawler.info.RobotsTxtInfo;
+import edu.upenn.cis455.webserver.utils.ChannelInfo;
 import edu.upenn.cis455.webserver.utils.MyDbEnv;
 import edu.upenn.cis455.xpathengine.XPathEngineImpl;
 import edu.upenn.cis455.xpathengine.XPathEngine;
@@ -33,6 +35,8 @@ import edu.upenn.cis455.xpathengine.XPathEngineFactory;
 
 public class XPathCrawler {
 	public static XPathCrawlerFactory f = new XPathCrawlerFactory();
+	public static XPathEngineFactory ff = new XPathEngineFactory();
+	public static XPathEngineImpl m_xpathEngine = (XPathEngineImpl) XPathEngineFactory.getXPathEngine();
 	// public LinkedBlockingQueue<Runnable> m_queue = new
 	// LinkedBlockingQueue<Runnable>(1000); // capability
 	// public CrawlerThreadPool m_pool = new CrawlerThreadPool(100, m_queue);
@@ -48,6 +52,7 @@ public class XPathCrawler {
 	public static Queue<String> m_queue = new LinkedList<String>();
 	public static HashMap<String, Long> m_hostLastVisit = new HashMap<String, Long>();
 
+	public static ArrayList<ChannelInfo> m_channelInfos = null;
 	public static void main(String args[])
 			throws NumberFormatException, InterruptedException, DatabaseException, NoSuchAlgorithmException {
 		if (args.length < 3) {
@@ -214,17 +219,23 @@ public class XPathCrawler {
 			e.printStackTrace();
 		}
 		//XPathEngineFactory f = new XPathEngineFactory();
-		XPathEngineImpl x = (XPathEngineImpl) XPathEngineFactory.getXPathEngine();
-		String[] str = {"/foo/bar/xyz",
-			"/foo/bar[@att=\"123\"]",
-			"/xyz/abc[contains(text(),\"someSubstring\")]",
-				"/a/b/c[text()=\"theEntireText\"]",
-				"/blah[anotherElement]",
-				"/this/that[something/else]",
-				"/d/e/f[foo[text()=\"something\"]][bar]",
-				"/a/b/c[text() =  \"whiteSpaceShouldNotMatter\"]"};
-		x.setXPaths(str);
-		x.print();
+//		XPathEngineImpl x = (XPathEngineImpl) XPathEngineFactory.getXPathEngine();
+//		String[] str = {"/foo/bar/xyz",
+//			"/foo/bar[@att=\"123\"]",
+//			"/xyz/abc[contains(text(),\"someSubstring\")]",
+//				"/a/b/c[text()=\"theEntireText\"]",
+//				"/blah[anotherElement]",
+//				"/this/that[something/else]",
+//				"/d/e/f[foo[text()=\"something\"]][bar]",
+//				"/a/b/c[text() =  \"whiteSpaceShouldNotMatter\"]"};
+//		x.setXPaths(str);
+//		x.print();
+		m_channelInfos = m_dbEnv.getAllChannel();
+		String[] xpaths = new String[m_channelInfos.size()];
+		for (int i = 0; i < xpaths.length; i++) {
+			xpaths[i] = m_channelInfos.get(i).xpath;
+		}
+		m_xpathEngine.setXPaths(xpaths);
 		
 		cluster.submitTopology("test", config, builder.createTopology());
 		Thread.sleep(300000);

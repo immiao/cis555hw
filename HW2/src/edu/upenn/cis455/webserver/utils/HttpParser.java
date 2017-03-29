@@ -295,7 +295,7 @@ public class HttpParser {
 		MyHttpServletRequest req = new MyHttpServletRequest(in, method, headerMap, paramsMap, serverName, protocol,
 				null, dir, null, query, uri.toString(), url, m_localAddr, m_localPort, m_remoteAddr, m_remotePort,
 				m_servletContext, reqSession);
-		MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192);
+		MyHttpServletResponse resp = new MyHttpServletResponse(os, 8192000);
 		if (date != null)
 			resp.addDateHeader("Date", date.getTime());
 		resp.setStatus(200);

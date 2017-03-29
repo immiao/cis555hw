@@ -392,12 +392,14 @@ public class XPathEngineImpl implements XPathEngine {
 	
 	public boolean[] evaluate(Document d) {
 		/* TODO: Check whether the document matches the XPath expressions */
+		//System.out.println(d.toString());
 		m_document = d;
 		boolean[] result = new boolean[m_xpaths.length];
 		for (int i = 0; i < m_xpaths.length; i++) {
+			//System.out.println(m_xpaths[i]);
 			result[i] = isMatched(i);
 		}
-		print();
+		// print();
 		return result;
 	}
 

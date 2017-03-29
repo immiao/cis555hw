@@ -68,7 +68,7 @@ public class MyHttpServletResponse implements HttpServletResponse {
 		@Override
 		public void flush() throws IOException {
 			resp.flushBuffer();
-			charsWritten = 0;
+			//charsWritten = 0;
 		}
 
 		@Override
@@ -99,9 +99,9 @@ public class MyHttpServletResponse implements HttpServletResponse {
 	@Override
 	public void flushBuffer() throws IOException {
 		// TODO Auto-generated method stub
-		if (m_isCommited)
-			return;
-		m_isCommited = true;
+//		if (m_isCommited)
+//			return;
+//		m_isCommited = true;
 		String result = new String();
 		
 		// initial line
@@ -144,7 +144,7 @@ public class MyHttpServletResponse implements HttpServletResponse {
 		// body
 		result += m_outputBuffer.getString();
 		
-		System.out.println(result);
+		//System.out.println(result);
 		System.out.println("-----Response End-----");
 		m_os.write(result.getBytes(), 0, result.getBytes().length);
 		resetBuffer();

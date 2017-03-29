@@ -90,7 +90,7 @@ public class CrawlerBolt implements IRichBolt {
 			headRequest.addHeader("host", host);
 			headRequest.addHeader("user-agent", "cis455crawler");
 			// crawl delay
-			XPathCrawler.hostVisitDelay(host);
+			//XPathCrawler.hostVisitDelay(host);
 			// System.out.println(m_URL + ": HEAD");
 			SimpleHttpResponse headResponse = client.execute(headRequest);
 			if (headResponse == null) {
