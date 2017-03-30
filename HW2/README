@@ -11,6 +11,8 @@ Did you complete any extra-credit tasks? If so, which ones?
 
 Any special instructions for building and running your solution?
   (include detailed instructions, or write 'None')
+Use ant crawl to start the crawler.
+Use ant server to start the server.
 
 Did you personally write _all_ the code you are submitting
 (other than code from the course web page)?

@@ -162,6 +162,11 @@
 	</target>
 
 	<target name="build" depends="crawler-jar,servlet-war">
+        <jar destfile="${web-inf.lib.dir}${file.separator}webserver.jar" update="true">
+            <fileset dir="${classes.dir}">
+                <include name="**/*.class"/>
+            </fileset>
+        </jar>
 	</target>
 
 	<target name="pack" description="Create an archive for submission">
@@ -177,6 +182,16 @@
 				<fileset dir="${inputlib.dir}" includes="**/*.jar" />
 			</classpath>
 			<arg line="http://crawltest.cis.upenn.edu/ database 3" />
+		</java>
+	</target>
+	
+	<target name="server" description="Server.." depends="build">
+		<java fork="true" classname="edu.upenn.cis455.webserver.HttpServer">
+			<classpath>
+				<pathelement location="${classes.dir}"/>
+				<fileset dir="${inputlib.dir}" includes="**/*.jar" />
+			</classpath>
+			<arg line="8080 / /Users/mac/Desktop/miaok/HW2/conf/web.xml" />
 		</java>
 	</target>
 

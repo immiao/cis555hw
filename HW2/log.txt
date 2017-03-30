@@ -2781,3 +2781,11 @@ java.lang.NullPointerException
 	at edu.upenn.cis455.webserver.utils.HttpParser.GetResult(HttpParser.java:486)
 	at edu.upenn.cis455.webserver.utils.HttpResponseRunnable.run(HttpResponseRunnable.java:31)
 	at edu.upenn.cis455.webserver.utils.HttpResponseThread.run(HttpResponseThread.java:18)
+java.lang.NullPointerException
+	at edu.upenn.cis455.webserver.utils.HttpParser.GetResult(HttpParser.java:334)
+	at edu.upenn.cis455.webserver.utils.HttpResponseRunnable.run(HttpResponseRunnable.java:31)
+	at edu.upenn.cis455.webserver.utils.HttpResponseThread.run(HttpResponseThread.java:18)
+java.lang.NullPointerException
+	at edu.upenn.cis455.webserver.utils.HttpParser.GetResult(HttpParser.java:486)
+	at edu.upenn.cis455.webserver.utils.HttpResponseRunnable.run(HttpResponseRunnable.java:31)
+	at edu.upenn.cis455.webserver.utils.HttpResponseThread.run(HttpResponseThread.java:18)

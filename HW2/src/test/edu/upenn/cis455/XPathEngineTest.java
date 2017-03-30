@@ -37,8 +37,8 @@ public class XPathEngineTest extends TestCase {
 	public void testValidXml() throws ParserConfigurationException, SAXException, IOException {
 		String xml = new String();
 		//File file = new File("test.html");
-		String html = new String(Files.readAllBytes(Paths.get("euro2.xml")));
-		org.jsoup.nodes.Document jdoc = Jsoup.parse(html);
+		//String html = new String(Files.readAllBytes(Paths.get("euro2.xml")));
+		//org.jsoup.nodes.Document jdoc = Jsoup.parse(html);
 //		System.out.println(jdoc.toString());
 //		W3CDom w3cDom = new W3CDom();
 //		org.w3c.dom.Document w3cDoc = w3cDom.fromJsoup(jdoc);
@@ -69,10 +69,13 @@ public class XPathEngineTest extends TestCase {
 				"/note/div[from[@att1=\"test\"]/heading[@headingAtt=\"test\"][contains(text(), \"min\")]]",
 				"/note/div[from[@att1=\"false\"]/heading]",
 				"/note/nest2",
-				"/rss/channel/title[contains(text(),\"sports\")]"};
+				"/rss/channel/title[contains(text(),\"sports\")]",
+				"/note[nest1[nest2]]",
+				"/note[nest1/nest2]",
+				"/note[nest1]/nest1[nest2]"};
 		//String[] xpath = {"/note/tt[text()=\"Don't forget me this weekend!\"]"};
 		m_xpathEngine.setXPaths(xpath);
-		System.out.println(jdoc.body());
+		//System.out.println(jdoc.body());
 		boolean[] b = m_xpathEngine.evaluate(jxmldoc);
 		assertEquals(b[0], true);
 		assertEquals(b[1], true);
@@ -86,5 +89,8 @@ public class XPathEngineTest extends TestCase {
 		assertEquals(b[9], false);
 		assertEquals(b[10], false);
 		assertEquals(b[11], false);
+		assertEquals(b[12], true);
+		assertEquals(b[13], true);
+		assertEquals(b[14], true);
 	}
 }
