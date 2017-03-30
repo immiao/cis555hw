@@ -191,7 +191,7 @@
 				<pathelement location="${classes.dir}"/>
 				<fileset dir="${inputlib.dir}" includes="**/*.jar" />
 			</classpath>
-			<arg line="8080 / /Users/mac/Desktop/miaok/HW2/conf/web.xml" />
+			<arg line="8080 / conf/web.xml" />
 		</java>
 	</target>
 
