@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,8 +69,8 @@ public class TestMapReduce {
         
         // Numbers of executors (per node)
         config.put("spoutExecutors", "1");
-        config.put("mapExecutors", "1");
-        config.put("reduceExecutors", "1");
+        config.put("mapExecutors", "3");
+        config.put("reduceExecutors", "4");
         
     }
 
@@ -83,6 +84,7 @@ public class TestMapReduce {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
+    	PropertyConfigurator.configure("log4j.properties");
         Config config = new Config();
         
         // Complete list of workers, comma-delimited
@@ -95,6 +97,7 @@ public class TestMapReduce {
         } else
             config.put("workerIndex", "0");
         
+        //config.put("workerIndex", "1");
         WorkerServer.createWorker(config);
 
         // If we're the Master, we need to initiate the computation
@@ -138,6 +141,7 @@ public class TestMapReduce {
 	
 				int i = 0;
 				for (String dest: workers) {
+					// workerIndex is changed here
 			        config.put("workerIndex", String.valueOf(i++));
 					if (sendJob(dest, "POST", config, "definejob", 
 							mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job)).getResponseCode() != 

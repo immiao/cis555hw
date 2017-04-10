@@ -49,10 +49,10 @@ public class WorkerServer {
     	final ObjectMapper om = new ObjectMapper();
         om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
         Spark.post(new Route("/definejob") {
-
+        	
 			@Override
 			public Object handle(Request arg0, Response arg1) {
-	        	
+				//log.info("define job");
 	        	WorkerJob workerJob;
 				try {
 					workerJob = om.readValue(arg0.body(), WorkerJob.class);
@@ -60,6 +60,7 @@ public class WorkerServer {
 		        	try {
 		        		log.info("Processing job definition request" + workerJob.getConfig().get("job") +
 		        				" on machine " + workerJob.getConfig().get("workerIndex"));
+		        		// each job has its topology
 						contexts.add(cluster.submitTopology(workerJob.getConfig().get("job"), workerJob.getConfig(), 
 								workerJob.getTopology()));
 						
@@ -98,6 +99,7 @@ public class WorkerServer {
 
 			@Override
 			public Object handle(Request arg0, Response arg1) {
+				//log.info("pushdata");
 				try {
 					String stream = arg0.params(":stream");
 					Tuple tuple = om.readValue(arg0.body(), Tuple.class);
@@ -105,6 +107,7 @@ public class WorkerServer {
 					log.debug("Worker received: " + tuple + " for " + stream);
 					
 					// Find the destination stream and route to it
+					// directly call the up stream's router to execute
 					StreamRouter router = cluster.getStreamRouter(stream);
 					
 					if (contexts.isEmpty())
@@ -144,7 +147,7 @@ public class WorkerServer {
 			String myAddress = addresses[Integer.valueOf(config.get("workerIndex"))];
 
 			log.debug("Initializing worker " + myAddress);
-
+			//log.info("Initializing worker " + myAddress);
 			URL url;
 			try {
 				url = new URL(myAddress);

@@ -17,7 +17,7 @@ public class WordCount implements Job {
   public void reduce(String key, Iterator<String> values, Context context)
   {
     // Your reduce function for WordCount goes here
-
+	  
 
   }
   

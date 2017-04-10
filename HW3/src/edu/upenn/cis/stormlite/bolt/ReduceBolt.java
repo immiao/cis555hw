@@ -99,6 +99,12 @@ public class ReduceBolt implements IRichBolt {
         }
 
         // TODO: determine how many EOS votes needed
+//        String[] workers = WorkerHelper.getWorkers(stormConf);
+//        int totalMapBoltsPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
+//        neededVotesToComplete = workers.length * totalMapBoltsPerWorker;
+        int totalMapBoltPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
+        int totalReduceBoltPerWorker = Integer.parseInt(stormConf.get("reduceExecutors"));
+        neededVotesToComplete = (WorkerHelper.getWorkers(stormConf).length - 1) * totalReduceBoltPerWorker + totalMapBoltPerWorker;
     }
 
     /**
@@ -114,15 +120,23 @@ public class ReduceBolt implements IRichBolt {
 		} else if (input.isEndOfStream()) {
 			
 			// TODO: only if at EOS do we trigger the reduce operation and output all state
-
-			sentEof = true;
+			neededVotesToComplete--;
+			log.info("reduce bolt remaining EOS: " + neededVotesToComplete);
+			if (neededVotesToComplete == 0) {
+				for (String key : stateByKey.keySet()) {
+					reduceJob.reduce(key, stateByKey.get(key).iterator(), collector);
+				}
+				collector.emitEndOfStream();
+				
+				sentEof = true;
+			}
     	} else {
     		// TODO: this is a plain ol' hash map, replace it with BerkeleyDB
     		
     		String key = input.getStringByField("key");
 	        String value = input.getStringByField("value");
 	        log.debug(getExecutorId() + " received " + key + " / " + value);
-	        
+	        log.info(getExecutorId() + " received " + key + " / " + value);
 	        synchronized (stateByKey) {
 		        if (!stateByKey.containsKey(key))
 		        	stateByKey.put(key, new ArrayList<>());

@@ -60,7 +60,7 @@ public class DistributedCluster implements Runnable {
 	
 	String theTopology;
 	
-	Map<String, List<IRichBolt>> boltStreams = new HashMap<>();
+	Map<String, List<IRichBolt>> boltStreams = new HashMap<>(); // boltStream stores instance
 	Map<String, List<IRichSpout>> spoutStreams = new HashMap<>();
 	
 	Map<String, StreamRouter> streams = new HashMap<>();
@@ -163,7 +163,7 @@ public class DistributedCluster implements Runnable {
 			
 			OutputCollector collector = new OutputCollector(context);
 			
-			boltStreams.put(key, new ArrayList<IRichBolt>());
+			boltStreams.put(key, new ArrayList<IRichBolt>()); // instances
 			int localExecutors = bolt.getRight();
 			for (int i = 0; i < localExecutors; i++)
 				try {
@@ -191,9 +191,11 @@ public class DistributedCluster implements Runnable {
 	private void createRoutes(Topology topo, Config config) {
 		// Add destination streams to the appropriate bolts
 		for (String stream: topo.getBolts().keySet()) {
-			BoltDeclarer decl = topo.getBoltDeclarer(stream);
+			BoltDeclarer decl = topo.getBoltDeclarer(stream); // down stream, declarer declares the up stream of a down stream
 			
-			StreamRouter router = decl.getRouter();
+			// up stream's router, though it exists in down stream's declarer
+			// only one router for multiple up streams and down streams
+			StreamRouter router = decl.getRouter(); 
 			
 			streams.put(stream, router);
 			
@@ -205,6 +207,7 @@ public class DistributedCluster implements Runnable {
 			for (String worker: WorkerHelper.getWorkers(config)) {
 				
 				// Create one sender bolt for each node aside from us!
+				// one sender bolt for each remote bolt
 				if (workerId++ != Integer.valueOf(config.get("workerIndex"))) {
 					SenderBolt sender = new SenderBolt(worker, stream);
 					sender.prepare(config, context, null);
@@ -214,21 +217,24 @@ public class DistributedCluster implements Runnable {
 					}
 					
 				// Create one local executor for each node for us!
+				// else branch only execute once
 				} else {
 					for (IRichBolt bolt: boltStreams.get(stream)) {
+						// add down streams to the router
 						router.addBolt(bolt);
 						log.debug("Adding a route from " + decl.getStream() + " to " + bolt);
 					}
 				}
 			}
 			
+			// add router to up stream
 			if (topo.getBolts().containsKey(decl.getStream())) {
 				for (IRichBolt bolt: boltStreams.get(decl.getStream())) {
 					bolt.setRouter(router);
 					bolt.declareOutputFields(router);
 				}
 			} else {
-				for (IRichSpout spout: spoutStreams.get(decl.getStream())) {
+				for (IRichSpout spout: spoutStreams.get(decl.getStream())) { 
 					spout.setRouter(router);
 					spout.declareOutputFields(router);
 				}

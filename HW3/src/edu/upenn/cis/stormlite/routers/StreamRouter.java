@@ -191,16 +191,20 @@ public abstract class StreamRouter implements OutputFieldsDeclarer {
 	 * @param context
 	 */
 	public synchronized void executeEndOfStream(TopologyContext context) {
+		// send to all bolts, not roundrobin or field based
 		for (IRichBolt bolt: getBolts()) {
 			log.debug("Task queued: " + bolt.getClass().getName() + " (" + bolt.getExecutorId() + "): (EOS)");
+			//log.info("Task queued: " + bolt.getClass().getName() + " (" + bolt.getExecutorId() + "): (EOS)");
 			context.addStreamTask(new BoltTask(bolt, Tuple.getEndOfStream()));
 		}
 	}
 
 	public synchronized void executeEndOfStreamLocally(TopologyContext context) {
+		//log.info("HIHIHI");
 		for (IRichBolt bolt: getBolts())
 			if (!isRemoteBolt(bolt)) {
 				log.debug("Task queued from other worker: " + bolt.getClass().getName() + " (" + bolt.getExecutorId() + "): (EOS)");
+				log.info("Task queued from other worker: " + bolt.getClass().getName() + " (" + bolt.getExecutorId() + "): (EOS)");
 				context.addStreamTask(new BoltTask(bolt, Tuple.getEndOfStream()));
 			}
 	}

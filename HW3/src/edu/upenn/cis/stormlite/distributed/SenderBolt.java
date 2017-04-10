@@ -64,6 +64,7 @@ public class SenderBolt implements IRichBolt {
         this.context = context;
 		try {
 			url = new URL(address + "/pushdata/" + stream);
+			//url = new URL(address + "/pushdata");
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -96,13 +97,30 @@ public class SenderBolt implements IRichBolt {
     	isEndOfStream = tuple.isEndOfStream();
     	
 		log.debug("Sender is routing " + tuple.toString() + " to " + address + "/" + stream);
-		
+		if (tuple.isEndOfStream())
+			log.info("Sender is routing " + "EOS" + " to " + address + "/" + stream);
+		//url = new URL(address + "/definejob");
+		//url = new URL(address + "/pushdata");
 		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 		conn.setRequestProperty("Content-Type", "application/json");
 		String jsonForTuple = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tuple);
 		
 		// TODO: send this to /pushdata/{stream} as a POST!
+		conn.setDoOutput(true);
+		conn.setRequestMethod("POST");
+		OutputStream os = conn.getOutputStream();
+		byte[] toSend = jsonForTuple.getBytes();
+		os.write(toSend);
+		os.flush();
 		
+		// fuck? no request is sent until I get response
+		if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+			
+		} else {
+			log.info("Http response is not 200 OK");
+		}
+		
+		//log.info("resp code: " + conn.getResponseCode());
 		conn.disconnect();
     }
 

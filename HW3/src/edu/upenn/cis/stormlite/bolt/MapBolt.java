@@ -11,7 +11,9 @@ import edu.upenn.cis.stormlite.distributed.WorkerHelper;
 import edu.upenn.cis.stormlite.routers.StreamRouter;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis.stormlite.tuple.Tuple;
+import edu.upenn.cis.stormlite.tuple.Values;
 import edu.upenn.cis455.mapreduce.Job;
+import edu.upenn.cis455.mapreduce.worker.WorkerServer;
 
 /**
  * A simple adapter that takes a MapReduce "Job" and calls the "map"
@@ -58,6 +60,7 @@ public class MapBolt implements IRichBolt {
 	/**
      * This is where we send our output stream
      */
+	// collector has a router, which contains down streams of the current bolt
     private OutputCollector collector;
     
     private TopologyContext context;
@@ -93,6 +96,13 @@ public class MapBolt implements IRichBolt {
         }
         
         // TODO: determine how many end-of-stream requests are needed
+        
+//        String[] workers = WorkerHelper.getWorkers(stormConf);
+//        int totalSpoutsPerWorker = Integer.parseInt(stormConf.get("spoutExecutors"));
+//        neededVotesToComplete = workers.length * totalSpoutsPerWorker;
+        int totalSpoutsPerWorker = Integer.parseInt(stormConf.get("spoutExecutors"));
+        int totalMapBoltPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
+        neededVotesToComplete = (WorkerHelper.getWorkers(stormConf).length - 1) * totalMapBoltPerWorker + totalSpoutsPerWorker;
     }
 
     /**
@@ -105,14 +115,19 @@ public class MapBolt implements IRichBolt {
 	        String key = input.getStringByField("key");
 	        String value = input.getStringByField("value");
 	        log.debug(getExecutorId() + " received " + key + " / " + value);
-	        
+	        log.info(getExecutorId() + " received " + key + " / " + value);
 	        if (neededVotesToComplete == 0)
 	        	throw new RuntimeException("We received data after we thought the stream had ended!");
 	        
 	        // TODO:  call the mapper, and do bookkeeping to track work done
+	        mapJob.map(key,  value, collector);
     	} else if (input.isEndOfStream()) {
     		// TODO: determine what to do with EOS
-
+    		neededVotesToComplete--;
+    		log.info("map bolt remaining EOS: " + neededVotesToComplete);
+    		if (neededVotesToComplete == 0) {
+    			collector.emitEndOfStream();
+    		}
     	}
     }
 
