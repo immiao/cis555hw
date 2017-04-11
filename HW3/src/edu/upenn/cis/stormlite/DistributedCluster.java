@@ -17,6 +17,8 @@
  */
 package edu.upenn.cis.stormlite;
 
+import java.io.File;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sleepycat.je.DatabaseException;
 
 import edu.upenn.cis.stormlite.bolt.BoltDeclarer;
 import edu.upenn.cis.stormlite.bolt.IRichBolt;
@@ -41,6 +44,7 @@ import edu.upenn.cis.stormlite.routers.StreamRouter;
 import edu.upenn.cis.stormlite.spout.IRichSpout;
 import edu.upenn.cis.stormlite.spout.SpoutOutputCollector;
 import edu.upenn.cis.stormlite.tasks.SpoutTask;
+import edu.upenn.cis455.mapreduce.worker.DbEnv;
 
 /**
  * Use multiple threads to simulate a cluster of worker nodes.
@@ -74,12 +78,17 @@ public class DistributedCluster implements Runnable {
 	
 	Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<Runnable>();
 	
-
+	DbEnv m_dbEnv = new DbEnv();
+	
 	public TopologyContext submitTopology(String name, Config config, 
-			Topology topo) throws ClassNotFoundException {
+			Topology topo) throws ClassNotFoundException, DatabaseException, NoSuchAlgorithmException {
 		theTopology = name;
 		
-		context = new TopologyContext(topo, taskQueue);
+		String workerName = "worker" + config.get("workerIndex");
+		int totalReduceBoltsPerWorker = Integer.parseInt(config.get("reduceExecutors"));
+		m_dbEnv.setup(new File("database/" + workerName), false, totalReduceBoltsPerWorker);
+		
+		context = new TopologyContext(topo, taskQueue, m_dbEnv);
 		
 		boltStreams.clear();
 		spoutStreams.clear();

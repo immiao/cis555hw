@@ -8,7 +8,6 @@
 	<classpathentry kind="lib" path="lib/jackson-core-2.9.0-20160930.222323-13.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-databind-2.9.0-20161012.002007-91.jar"/>
 	<classpathentry kind="lib" path="lib/javax.annotation-api-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/je-6.2.31.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-http-9.3.13.v20161014.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-io-9.3.13.v20161014.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-server-9.3.13.v20161014.jar"/>
@@ -21,5 +20,6 @@
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.21.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.7.21.jar"/>
 	<classpathentry kind="lib" path="lib/spark-core-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/je-7.3.7.jar"/>
 	<classpathentry kind="output" path="classes/"/>
 </classpath>

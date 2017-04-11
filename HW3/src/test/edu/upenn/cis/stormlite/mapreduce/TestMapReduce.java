@@ -70,7 +70,7 @@ public class TestMapReduce {
         // Numbers of executors (per node)
         config.put("spoutExecutors", "1");
         config.put("mapExecutors", "3");
-        config.put("reduceExecutors", "4");
+        config.put("reduceExecutors", "1");
         
     }
 

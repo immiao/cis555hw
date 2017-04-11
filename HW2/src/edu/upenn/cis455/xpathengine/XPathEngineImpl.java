@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.jsoup.parser.Parser;
 import org.xml.sax.helpers.DefaultHandler;
 
 class Tokenizer {
@@ -20,7 +22,7 @@ class Tokenizer {
 	}
 
 	private boolean isSpecialChar(char c) {
-		return c == '/' || c == '\"' || c == ')' || c == '=' || c == '(' || c == '[' || c == ']' || c == ',' || c == '@';
+		return c == '/' || c == '\"' || c == ')' || c == '=' || c == '(' || c == '[' || c == ']' || c == ',' || c == '@' || c == ' ';
 	}
 
 	public String nextToken() {
@@ -277,6 +279,11 @@ public class XPathEngineImpl implements XPathEngine {
 	private boolean isValidElement(int i, XPathNode node, Element e) {
 		for (String s : node.attr.keySet()) {
 			String value = e.attr(s);
+//			System.out.println("ATTR:" + e.attributes());
+//			System.out.println("SSS: " + s);
+//			System.out.println("EQUAL:" + s.length());
+//			System.out.println("VALUE0: " + e.attributes().get("title"));
+//			System.out.println("VALUE1: " + e.attributes().get(s));
 			if (value == null)
 				return false;
 			if (!node.attr.get(s).equals(value))
@@ -391,6 +398,7 @@ public class XPathEngineImpl implements XPathEngine {
 	}
 	
 	public boolean[] evaluate(Document d) {
+		//System.out.println("IN1");
 		/* TODO: Check whether the document matches the XPath expressions */
 		//System.out.println(d.toString());
 		m_document = d;
@@ -399,7 +407,9 @@ public class XPathEngineImpl implements XPathEngine {
 			//System.out.println(m_xpaths[i]);
 			result[i] = isMatched(i);
 		}
-		// print();
+		//System.out.println(d.toString());
+		//print();
+		
 		return result;
 	}
 
@@ -417,8 +427,12 @@ public class XPathEngineImpl implements XPathEngine {
 
 	@Override
 	public boolean[] evaluate(org.w3c.dom.Document d) {
+		//System.out.println("IN2");
 		// TODO Auto-generated method stub
-		return null;
+		
+		Document jd = Jsoup.parse(d.toString(), "", Parser.xmlParser());
+		System.out.println(d.toString());
+		return evaluate(jd);
 	}
 
 }

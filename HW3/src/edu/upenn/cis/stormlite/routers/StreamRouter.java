@@ -204,12 +204,13 @@ public abstract class StreamRouter implements OutputFieldsDeclarer {
 		for (IRichBolt bolt: getBolts())
 			if (!isRemoteBolt(bolt)) {
 				log.debug("Task queued from other worker: " + bolt.getClass().getName() + " (" + bolt.getExecutorId() + "): (EOS)");
-				log.info("Task queued from other worker: " + bolt.getClass().getName() + " (" + bolt.getExecutorId() + "): (EOS)");
+				//log.info("Task queued from other worker: " + bolt.getClass().getName() + " (" + bolt.getExecutorId() + "): (EOS)");
 				context.addStreamTask(new BoltTask(bolt, Tuple.getEndOfStream()));
 			}
 	}
 
 	public String getKey(List<Object> input) {
+		//log.info("ASDASD:" + input.toString());
 		return input.toString();
 	}
 }

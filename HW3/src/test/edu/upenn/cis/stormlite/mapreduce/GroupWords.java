@@ -8,6 +8,7 @@ import edu.upenn.cis455.mapreduce.Job;
 public class GroupWords implements Job {
 	@Override
 	public void map(String key, String value, Context context) {
+		int i = 0;
 		context.write(value, value);
 	}
 

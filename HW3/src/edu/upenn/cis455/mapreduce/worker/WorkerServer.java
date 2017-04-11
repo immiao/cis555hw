@@ -5,6 +5,7 @@ import static spark.Spark.setPort;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sleepycat.je.DatabaseException;
 
 import edu.upenn.cis.stormlite.DistributedCluster;
 import edu.upenn.cis.stormlite.TopologyContext;
@@ -70,6 +72,12 @@ public class WorkerServer {
 					} catch (ClassNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					} catch (DatabaseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 		            return "Job launched";
 				} catch (IOException e) {
@@ -104,7 +112,7 @@ public class WorkerServer {
 					String stream = arg0.params(":stream");
 					Tuple tuple = om.readValue(arg0.body(), Tuple.class);
 					
-					log.debug("Worker received: " + tuple + " for " + stream);
+					
 					
 					// Find the destination stream and route to it
 					// directly call the up stream's router to execute
@@ -113,8 +121,12 @@ public class WorkerServer {
 					if (contexts.isEmpty())
 						log.error("No topology context -- were we initialized??");
 					
-			    	if (!tuple.isEndOfStream())
+					// increase the
+			    	if (!tuple.isEndOfStream()) {
+//			    		log.info("111Worker received: " + tuple + " for " + stream + "\n222Worker received: " + tuple.getValues() + " for " + stream + "\n"
+//			    				+ "333Worker received: " + router.getKey(tuple.getValues()));
 			    		contexts.get(contexts.size() - 1).incSendOutputs(router.getKey(tuple.getValues()));
+			    	}
 					
 					if (tuple.isEndOfStream())
 						router.executeEndOfStreamLocally(contexts.get(contexts.size() - 1));

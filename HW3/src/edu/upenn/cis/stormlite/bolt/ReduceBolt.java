@@ -15,6 +15,7 @@ import edu.upenn.cis.stormlite.routers.StreamRouter;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis.stormlite.tuple.Tuple;
 import edu.upenn.cis455.mapreduce.Job;
+import edu.upenn.cis455.mapreduce.worker.DbEnv;
 
 /**
  * A simple adapter that takes a MapReduce "Job" and calls the "reduce"
@@ -69,6 +70,8 @@ public class ReduceBolt implements IRichBolt {
     
     int neededVotesToComplete = 0;
     
+    DbEnv m_dbEnv;
+    
     public ReduceBolt() {
     }
     
@@ -80,7 +83,9 @@ public class ReduceBolt implements IRichBolt {
     		TopologyContext context, OutputCollector collector) {
         this.collector = collector;
         this.context = context;
-
+        this.m_dbEnv = context.getDbEnv();
+        m_dbEnv.addReduceBoltDb(executorId);
+        
         if (!stormConf.containsKey("reduceClass"))
         	throw new RuntimeException("Mapper class is not specified as a config option");
         else {
@@ -121,10 +126,16 @@ public class ReduceBolt implements IRichBolt {
 			
 			// TODO: only if at EOS do we trigger the reduce operation and output all state
 			neededVotesToComplete--;
-			log.info("reduce bolt remaining EOS: " + neededVotesToComplete);
+			//log.info("reduce bolt remaining EOS: " + neededVotesToComplete);
 			if (neededVotesToComplete == 0) {
-				for (String key : stateByKey.keySet()) {
-					reduceJob.reduce(key, stateByKey.get(key).iterator(), collector);
+//				for (String key : stateByKey.keySet()) {
+//					reduceJob.reduce(key, stateByKey.get(key).iterator(), collector);
+//				}
+				HashMap<String, ArrayList<String>> groups = m_dbEnv.getAllGroup(executorId);
+				for (String key : groups.keySet()) {
+					reduceJob.reduce(key,  groups.get(key).iterator(), collector);
+					context.incReduceOutputs(key);
+					//log.info("SIZE: " + groups.get(key).size());
 				}
 				collector.emitEndOfStream();
 				
@@ -133,17 +144,22 @@ public class ReduceBolt implements IRichBolt {
     	} else {
     		// TODO: this is a plain ol' hash map, replace it with BerkeleyDB
     		
+//    		String key = input.getStringByField("key");
+//	        String value = input.getStringByField("value");
+//	        log.debug(getExecutorId() + " received " + key + " / " + value);
+//	        log.info(getExecutorId() + " received " + key + " / " + value);
+//	        synchronized (stateByKey) {
+//		        if (!stateByKey.containsKey(key))
+//		        	stateByKey.put(key, new ArrayList<>());
+//		        else
+//		        	log.debug("Adding item to " + key + " / " + stateByKey.get(key).size());
+//		        stateByKey.get(key).add(value);
+//	        }
+    		
     		String key = input.getStringByField("key");
-	        String value = input.getStringByField("value");
-	        log.debug(getExecutorId() + " received " + key + " / " + value);
-	        log.info(getExecutorId() + " received " + key + " / " + value);
-	        synchronized (stateByKey) {
-		        if (!stateByKey.containsKey(key))
-		        	stateByKey.put(key, new ArrayList<>());
-		        else
-		        	log.debug("Adding item to " + key + " / " + stateByKey.get(key).size());
-		        stateByKey.get(key).add(value);
-	        }
+    		String value = input.getStringByField("value");
+    		log.info(getExecutorId() + " received " + key + " / " + value);
+    		m_dbEnv.addValue(executorId, key, value);
     	}        
     }
 

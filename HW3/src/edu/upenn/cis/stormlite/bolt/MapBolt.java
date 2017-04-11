@@ -121,6 +121,7 @@ public class MapBolt implements IRichBolt {
 	        
 	        // TODO:  call the mapper, and do bookkeeping to track work done
 	        mapJob.map(key,  value, collector);
+	        context.incMapOutputs(key);
     	} else if (input.isEndOfStream()) {
     		// TODO: determine what to do with EOS
     		neededVotesToComplete--;

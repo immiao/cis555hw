@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Queue;
 
 import edu.upenn.cis.stormlite.routers.StreamRouter;
+import edu.upenn.cis455.mapreduce.worker.DbEnv;
 
 /**
  * Information about the execution of a topology, including
@@ -50,9 +51,16 @@ public class TopologyContext {
 	 */
 	Map<String,StreamRouter> next = new HashMap<>();
 	
-	public TopologyContext(Topology topo, Queue<Runnable> theTaskQueue) {
+	DbEnv m_dbEnv;
+	
+	public TopologyContext(Topology topo, Queue<Runnable> theTaskQueue, DbEnv dbEnv) {
 		topology = topo;
 		taskQueue = theTaskQueue;
+		m_dbEnv = dbEnv;
+	}
+	
+	public DbEnv getDbEnv() {
+		return m_dbEnv;
 	}
 	
 	public Topology getTopology() {
