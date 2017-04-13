@@ -106,7 +106,6 @@ public class TestMapReduce {
     		System.out.println("Press [Enter] to launch query, once nodes are alive...");
     		(new BufferedReader(new InputStreamReader(System.in))).readLine();
 
-			
 			log.info("************ Creating the job request ***************");
 
 			createSampleMapReduce(config);

@@ -16,9 +16,13 @@ import spark.Route;
 import spark.Spark;
 
 public class MasterServer {	
-	public MasterServer(HttpServlet servlet, int port) {
+	MasterServlet servlet = new MasterServlet();
+	
+	public MasterServer(int port) throws ServletException {
 		
+		servlet.init();
 		Spark.setPort(port);
+		
 		Spark.get(new Route("/workerstatus") {
 
 			@Override
@@ -71,8 +75,8 @@ public class MasterServer {
 		});
 	}
 	
-	public static void createMaster(HttpServlet servlet, int port) {
-		new MasterServer(servlet, port);
+	public static void createMaster(int port) throws ServletException {
+		new MasterServer(port);
 	}
 	
 }

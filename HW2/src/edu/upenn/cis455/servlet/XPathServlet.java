@@ -3,6 +3,7 @@ package edu.upenn.cis455.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -205,6 +206,9 @@ public class XPathServlet extends HttpServlet {
 				//HttpServer.dbEnv.updateChannelInfo("test", new ChannelInfo());
 				String name = request.getParameter("name");
 				String xpath = request.getParameter("xpath");
+				xpath = new URLDecoder().decode(xpath);
+//				System.out.println("STR : " + xpath);
+//				System.out.println("URL : " + new URLDecoder().decode(xpath));
 				if (!HttpServer.dbEnv.insertChannel(usr, name, xpath)) {
 					HtmlMessage(out, new String[] { "Create channel failed!", "The channel already exists."});
 					response.sendError(409);

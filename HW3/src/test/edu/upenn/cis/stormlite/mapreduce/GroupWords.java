@@ -19,7 +19,6 @@ public class GroupWords implements Job {
 			context.write(key, "");
 			values.next();
 		}
-		
 	}
 
 }

@@ -78,7 +78,7 @@ public class ParserBolt implements IRichBolt {
 				getRequest.addHeader("host", host);
 				getRequest.addHeader("user-agent", "cis455crawler");
 				// crawl delay
-				XPathCrawler.hostVisitDelay(host);
+				//XPathCrawler.hostVisitDelay(host);
 				SimpleHttpResponse getResponse = client.execute(getRequest);
 				if (getResponse == null)
 					return;

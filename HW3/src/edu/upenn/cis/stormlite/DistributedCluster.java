@@ -45,6 +45,7 @@ import edu.upenn.cis.stormlite.spout.IRichSpout;
 import edu.upenn.cis.stormlite.spout.SpoutOutputCollector;
 import edu.upenn.cis.stormlite.tasks.SpoutTask;
 import edu.upenn.cis455.mapreduce.worker.DbEnv;
+import edu.upenn.cis455.mapreduce.worker.WorkerServer;
 
 /**
  * Use multiple threads to simulate a cluster of worker nodes.
@@ -84,10 +85,23 @@ public class DistributedCluster implements Runnable {
 			Topology topo) throws ClassNotFoundException, DatabaseException, NoSuchAlgorithmException {
 		theTopology = name;
 		
-		String workerName = "worker" + config.get("workerIndex");
-		int totalReduceBoltsPerWorker = Integer.parseInt(config.get("reduceExecutors"));
-		m_dbEnv.setup(new File("database/" + workerName), false, totalReduceBoltsPerWorker);
+		//String workerName = "worker" + config.get("workerIndex");
+		File envHome = new File(WorkerServer.storeDir + "/");
+//		if (envHome.exists()) {
+//			if (envHome.delete())
+//				System.out.println("Env Home Deleted");
+//		}
+		envHome.mkdirs();
 		
+//		File inputDir = new File(WorkerServer.storeDir + "/" + config.get("inputdir"));
+		File outputDir = new File(WorkerServer.storeDir + "/" + config.get("outputdir"));
+//		if (!inputDir.mkdirs())
+//			System.out.println("Make Input Directory Failed!");
+		if (!outputDir.mkdirs())
+			System.out.println("Make Output Directory Failed!");
+		
+		m_dbEnv.setup(envHome, false);
+
 		context = new TopologyContext(topo, taskQueue, m_dbEnv);
 		
 		boltStreams.clear();

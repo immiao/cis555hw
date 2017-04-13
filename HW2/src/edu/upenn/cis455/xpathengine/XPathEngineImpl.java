@@ -1,9 +1,17 @@
 package edu.upenn.cis455.xpathengine;
 
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -22,7 +30,8 @@ class Tokenizer {
 	}
 
 	private boolean isSpecialChar(char c) {
-		return c == '/' || c == '\"' || c == ')' || c == '=' || c == '(' || c == '[' || c == ']' || c == ',' || c == '@' || c == ' ';
+		return c == '/' || c == '\"' || c == ')' || c == '=' || c == '(' || c == '[' || c == ']' || c == ',' || c == '@'
+				|| c == ' ';
 	}
 
 	public String nextToken() {
@@ -47,7 +56,7 @@ class Tokenizer {
 			m_index += 8;
 			return new String("contains");
 		}
-		//throw new InvalidXPathException();
+		// throw new InvalidXPathException();
 		int startIndex = m_index;
 		while (m_index < length && !isSpecialChar(m_str.charAt(m_index))) {
 			m_index++;
@@ -55,7 +64,7 @@ class Tokenizer {
 		// nodename
 		return m_str.substring(startIndex, m_index);
 	}
-	
+
 	public String nextString() {
 		int length = m_str.length();
 		int startIndex = m_index;
@@ -65,7 +74,7 @@ class Tokenizer {
 		// nodename or "..."
 		return m_str.substring(startIndex, m_index);
 	}
-	
+
 	public String lookNextToken() {
 		int length = m_str.length();
 		if (m_index >= length)
@@ -274,16 +283,16 @@ public class XPathEngineImpl implements XPathEngine {
 			}
 		}
 	}
-	
+
 	// verify if the attributes of a node match
 	private boolean isValidElement(int i, XPathNode node, Element e) {
 		for (String s : node.attr.keySet()) {
 			String value = e.attr(s);
-//			System.out.println("ATTR:" + e.attributes());
-//			System.out.println("SSS: " + s);
-//			System.out.println("EQUAL:" + s.length());
-//			System.out.println("VALUE0: " + e.attributes().get("title"));
-//			System.out.println("VALUE1: " + e.attributes().get(s));
+			// System.out.println("ATTR:" + e.attributes());
+			// System.out.println("SSS: " + s);
+			// System.out.println("EQUAL:" + s.length());
+			// System.out.println("VALUE0: " + e.attributes().get("title"));
+			// System.out.println("VALUE1: " + e.attributes().get(s));
 			if (value == null)
 				return false;
 			if (!node.attr.get(s).equals(value))
@@ -297,50 +306,51 @@ public class XPathEngineImpl implements XPathEngine {
 			if (!e.text().equals(s))
 				return false;
 		}
-		
+
 		for (XPathNode n : node.containNode) {
 			if (!dfsValid(i, n, e))
 				return false;
 		}
 		return true;
 	}
-	
+
 	private boolean dfsValid(int i, XPathNode node, Element parentElement) {
 		if (node == null)
 			return true;
-//		NodeList nodeList = parentElement.getElementsByTagName(node.nodeName);
-//		
-//		int length = nodeList.getLength();
-//		if (length == 0)
-//			return false;
-//		
-//		for (int j = 0; j < length; j++) {
-//			Element e = (Element)nodeList.item(j);
-//			if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
-//				return true;
-//		}
-//		return false;
-		
-//		NodeList nodeList = parentElement.getChildNodes();	
-//		
-//		int length = nodeList.getLength();
-//		for (int j = 0; j < length; j++) {
-//			Element e = (Element)nodeList.item(j);
-//			if (e.getNodeName().equals(node.nodeName)) {
-//				if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
-//					return true;
-//			}
-//		}
-//		return false;
-		
-		List<Element> nodeList = parentElement.children();	
-		
+		// NodeList nodeList =
+		// parentElement.getElementsByTagName(node.nodeName);
+		//
+		// int length = nodeList.getLength();
+		// if (length == 0)
+		// return false;
+		//
+		// for (int j = 0; j < length; j++) {
+		// Element e = (Element)nodeList.item(j);
+		// if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
+		// return true;
+		// }
+		// return false;
+
+		// NodeList nodeList = parentElement.getChildNodes();
+		//
+		// int length = nodeList.getLength();
+		// for (int j = 0; j < length; j++) {
+		// Element e = (Element)nodeList.item(j);
+		// if (e.getNodeName().equals(node.nodeName)) {
+		// if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
+		// return true;
+		// }
+		// }
+		// return false;
+
+		List<Element> nodeList = parentElement.children();
+
 		int length = nodeList.size();
-		
+
 		for (int j = 0; j < length; j++) {
 			Element e = nodeList.get(j);
-//			if (parentElement.tagName().equals("to"))
-//				System.out.println(e.tagName());
+			// if (parentElement.tagName().equals("to"))
+			// System.out.println(e.tagName());
 			if (e.tagName().equals(node.nodeName)) {
 				if (isValidElement(i, node, e) && dfsValid(i, node.nextNode, e))
 					return true;
@@ -348,68 +358,73 @@ public class XPathEngineImpl implements XPathEngine {
 		}
 		return false;
 	}
-	
+
 	public boolean isValid(int i) {
-		// I check the xpath in setXPaths()->buildXPathTree(). It will throw an exception if the xpath is invalid
+		// I check the xpath in setXPaths()->buildXPathTree(). It will throw an
+		// exception if the xpath is invalid
 		return m_isValid[i];
 	}
 
 	public boolean isMatched(int i) {
-//		NodeList nodeList = m_document.getElementsByTagName(m_XPathRoot[i].nodeName);
-//		int length = nodeList.getLength();
-//		if (length == 0)
-//			return false;
-//		for (int j = 0; j < length; j++) {
-//			Element e = (Element)nodeList.item(j);
-//			if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
-//				return true;
-//		}
-//		return false;
-		
-//		if (!m_isValid[i])
-//			return false;
-//		
-//		NodeList nodeList = m_document.getChildNodes();
-//		int length = nodeList.getLength();
-//		for (int j = 0; j < length; j++) {
-//			Element e = (Element)nodeList.item(j);
-//			
-//			if (e.getNodeName().equals(m_XPathRoot[i].nodeName)) {
-//				if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
-//					return true;
-//			}
-//		}
-//		return false;
-		
+		// NodeList nodeList =
+		// m_document.getElementsByTagName(m_XPathRoot[i].nodeName);
+		// int length = nodeList.getLength();
+		// if (length == 0)
+		// return false;
+		// for (int j = 0; j < length; j++) {
+		// Element e = (Element)nodeList.item(j);
+		// if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i,
+		// m_XPathRoot[i].nextNode, e))
+		// return true;
+		// }
+		// return false;
+
+		// if (!m_isValid[i])
+		// return false;
+		//
+		// NodeList nodeList = m_document.getChildNodes();
+		// int length = nodeList.getLength();
+		// for (int j = 0; j < length; j++) {
+		// Element e = (Element)nodeList.item(j);
+		//
+		// if (e.getNodeName().equals(m_XPathRoot[i].nodeName)) {
+		// if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i,
+		// m_XPathRoot[i].nextNode, e))
+		// return true;
+		// }
+		// }
+		// return false;
+
 		if (!m_isValid[i])
 			return false;
 		return dfsValid(i, m_XPathRoot[i], m_document);
-//		List<Element> nodeList = m_document.body().children();
-//		int length = nodeList.size();
-//		for (int j = 0; j < length; j++) {
-//			Element e = nodeList.get(j);
-//			
-//			if (e.tagName().equals(m_XPathRoot[i].nodeName)) {
-//				if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i, m_XPathRoot[i].nextNode, e))
-//					return true;
-//			}
-//		}
-		//return false;
+		// List<Element> nodeList = m_document.body().children();
+		// int length = nodeList.size();
+		// for (int j = 0; j < length; j++) {
+		// Element e = nodeList.get(j);
+		//
+		// if (e.tagName().equals(m_XPathRoot[i].nodeName)) {
+		// if (isValidElement(i, m_XPathRoot[i], e) && dfsValid(i,
+		// m_XPathRoot[i].nextNode, e))
+		// return true;
+		// }
+		// }
+		// return false;
 	}
-	
+
 	public boolean[] evaluate(Document d) {
-		//System.out.println("IN1");
+		// System.out.println("IN1");
 		/* TODO: Check whether the document matches the XPath expressions */
-		//System.out.println(d.toString());
+		// System.out.println(d.toString());
 		m_document = d;
 		boolean[] result = new boolean[m_xpaths.length];
 		for (int i = 0; i < m_xpaths.length; i++) {
-			//System.out.println(m_xpaths[i]);
+			// System.out.println(m_xpaths[i]);
 			result[i] = isMatched(i);
 		}
-		//System.out.println(d.toString());
-		//print();
-		
+		// System.out.println(d.toString());
+		// print();
+
 		return result;
 	}
 
@@ -427,11 +442,28 @@ public class XPathEngineImpl implements XPathEngine {
 
 	@Override
 	public boolean[] evaluate(org.w3c.dom.Document d) {
-		//System.out.println("IN2");
+		//System.out.println(d.toString());
+		// System.out.println("IN2");
 		// TODO Auto-generated method stub
-		
-		Document jd = Jsoup.parse(d.toString(), "", Parser.xmlParser());
-		System.out.println(d.toString());
+
+		DOMSource domSource = new DOMSource(d);
+		StringWriter writer = new StringWriter();
+		StreamResult result = new StreamResult(writer);
+		TransformerFactory tf = TransformerFactory.newInstance();
+		Transformer transformer = null;
+		try {
+			transformer = tf.newTransformer();
+			transformer.transform(domSource, result);
+		} catch (TransformerConfigurationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		Document jd = Jsoup.parse(writer.toString(), "", Parser.xmlParser());
+
 		return evaluate(jd);
 	}
 

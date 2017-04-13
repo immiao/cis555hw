@@ -17,9 +17,11 @@
  */
 package edu.upenn.cis.stormlite;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.upenn.cis.stormlite.routers.StreamRouter;
 import edu.upenn.cis455.mapreduce.worker.DbEnv;
@@ -36,9 +38,9 @@ public class TopologyContext {
 	
 	Queue<Runnable> taskQueue;
 	
-	public static enum STATE {INIT, MAP, REDUCE, DONE};
+	public static enum STATE {IDLE, MAP, WAITING, REDUCE};
 	
-	STATE state = STATE.INIT;
+	STATE state = STATE.IDLE;
 	
 	int mapOutputs = 0;
 	
@@ -53,6 +55,10 @@ public class TopologyContext {
 	
 	DbEnv m_dbEnv;
 	
+	public AtomicInteger keysRead = new AtomicInteger();
+	public AtomicInteger keysWritten = new AtomicInteger();
+	public ArrayList<String> results = new ArrayList<String>();
+
 	public TopologyContext(Topology topo, Queue<Runnable> theTaskQueue, DbEnv dbEnv) {
 		topology = topo;
 		taskQueue = theTaskQueue;

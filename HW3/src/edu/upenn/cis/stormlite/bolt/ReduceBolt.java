@@ -86,10 +86,10 @@ public class ReduceBolt implements IRichBolt {
         this.m_dbEnv = context.getDbEnv();
         m_dbEnv.addReduceBoltDb(executorId);
         
-        if (!stormConf.containsKey("reduceClass"))
+        if (!stormConf.containsKey("jobname"))
         	throw new RuntimeException("Mapper class is not specified as a config option");
         else {
-        	String mapperClass = stormConf.get("reduceClass");
+        	String mapperClass = stormConf.get("jobname");
         	
         	try {
 				reduceJob = (Job)Class.forName(mapperClass).newInstance();
@@ -109,7 +109,7 @@ public class ReduceBolt implements IRichBolt {
 //        neededVotesToComplete = workers.length * totalMapBoltsPerWorker;
         int totalMapBoltPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
         int totalReduceBoltPerWorker = Integer.parseInt(stormConf.get("reduceExecutors"));
-        neededVotesToComplete = (WorkerHelper.getWorkers(stormConf).length - 1) * totalReduceBoltPerWorker + totalMapBoltPerWorker;
+        neededVotesToComplete = totalReduceBoltPerWorker * (WorkerHelper.getWorkers(stormConf).length - 1) * totalReduceBoltPerWorker + totalMapBoltPerWorker;
     }
 
     /**
@@ -132,12 +132,20 @@ public class ReduceBolt implements IRichBolt {
 //					reduceJob.reduce(key, stateByKey.get(key).iterator(), collector);
 //				}
 				HashMap<String, ArrayList<String>> groups = m_dbEnv.getAllGroup(executorId);
+				context.setState(TopologyContext.STATE.REDUCE);
+				
+				context.keysRead.set(0);
+				context.keysWritten.set(0);
+				
 				for (String key : groups.keySet()) {
+					context.keysRead.incrementAndGet();
 					reduceJob.reduce(key,  groups.get(key).iterator(), collector);
+					context.keysWritten.incrementAndGet();
 					context.incReduceOutputs(key);
 					//log.info("SIZE: " + groups.get(key).size());
 				}
 				collector.emitEndOfStream();
+				context.setState(TopologyContext.STATE.IDLE);
 				
 				sentEof = true;
 			}

@@ -33,11 +33,8 @@ public class DbEnv {
 
 	}
 
-	public void setup(File envHome, boolean readOnly, int totalReduceBolt)
+	public void setup(File envHome, boolean readOnly)
 			throws DatabaseException, NoSuchAlgorithmException {
-		if (envHome.exists()) 
-			envHome.delete();
-		envHome.mkdir();
 		
 		m_envConfig.setReadOnly(readOnly);
 		m_dbConfig.setReadOnly(readOnly);

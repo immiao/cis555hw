@@ -77,10 +77,10 @@ public class MapBolt implements IRichBolt {
         this.collector = collector;
         this.context = context;
         
-        if (!stormConf.containsKey("mapClass"))
+        if (!stormConf.containsKey("jobname"))
         	throw new RuntimeException("Mapper class is not specified as a config option");
         else {
-        	String mapperClass = stormConf.get("mapClass");
+        	String mapperClass = stormConf.get("jobname");
         	
         	try {
 				mapJob = (Job)Class.forName(mapperClass).newInstance();
@@ -102,7 +102,7 @@ public class MapBolt implements IRichBolt {
 //        neededVotesToComplete = workers.length * totalSpoutsPerWorker;
         int totalSpoutsPerWorker = Integer.parseInt(stormConf.get("spoutExecutors"));
         int totalMapBoltPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
-        neededVotesToComplete = (WorkerHelper.getWorkers(stormConf).length - 1) * totalMapBoltPerWorker + totalSpoutsPerWorker;
+        neededVotesToComplete = totalSpoutsPerWorker * (WorkerHelper.getWorkers(stormConf).length - 1) * totalMapBoltPerWorker + totalSpoutsPerWorker;
     }
 
     /**
@@ -120,14 +120,19 @@ public class MapBolt implements IRichBolt {
 	        	throw new RuntimeException("We received data after we thought the stream had ended!");
 	        
 	        // TODO:  call the mapper, and do bookkeeping to track work done
+	        context.keysRead.incrementAndGet();
 	        mapJob.map(key,  value, collector);
+	        context.keysWritten.incrementAndGet();
+	        
 	        context.incMapOutputs(key);
+	        context.setState(TopologyContext.STATE.MAP);
     	} else if (input.isEndOfStream()) {
     		// TODO: determine what to do with EOS
     		neededVotesToComplete--;
     		log.info("map bolt remaining EOS: " + neededVotesToComplete);
     		if (neededVotesToComplete == 0) {
     			collector.emitEndOfStream();
+    			context.setState(TopologyContext.STATE.WAITING);
     		}
     	}
     }
