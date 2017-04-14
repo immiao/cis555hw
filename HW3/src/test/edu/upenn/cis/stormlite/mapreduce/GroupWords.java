@@ -2,7 +2,7 @@ package test.edu.upenn.cis.stormlite.mapreduce;
 
 import java.util.Iterator;
 
-import edu.upenn.cis455.mapreduce.Context;
+import edu.upenn.cis.stormlite.Context;
 import edu.upenn.cis455.mapreduce.Job;
 
 public class GroupWords implements Job {

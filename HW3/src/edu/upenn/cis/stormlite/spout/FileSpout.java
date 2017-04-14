@@ -19,7 +19,6 @@ import edu.upenn.cis.stormlite.spout.IRichSpout;
 import edu.upenn.cis.stormlite.spout.SpoutOutputCollector;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis.stormlite.tuple.Values;
-import edu.upenn.cis455.mapreduce.worker.WorkerServer;
 
 /**
  * Simple word spout, largely derived from
@@ -96,7 +95,7 @@ public abstract class FileSpout implements IRichSpout {
 			// else
 			// reader = new BufferedReader(new FileReader(filename));
 
-			String filesDir = WorkerServer.storeDir + "/" + conf.get("inputdir");
+			String filesDir = filename + "/" + conf.get("inputdir");
 			File[] files = new File(filesDir).listFiles();
 			for (File file : files) {
 				readers.add(new BufferedReader(new FileReader(file)));

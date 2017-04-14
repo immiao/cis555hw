@@ -10,6 +10,7 @@ import edu.upenn.cis.stormlite.LocalCluster;
 import edu.upenn.cis.stormlite.Topology;
 import edu.upenn.cis.stormlite.TopologyBuilder;
 import edu.upenn.cis.stormlite.tuple.Fields;
+import edu.upenn.cis455.mapreduce.PrintBolt;
 
 /**
  * Simple word counter test case, largely derived from

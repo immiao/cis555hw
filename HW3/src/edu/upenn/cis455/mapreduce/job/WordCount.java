@@ -2,7 +2,7 @@ package edu.upenn.cis455.mapreduce.job;
 
 import java.util.Iterator;
 
-import edu.upenn.cis455.mapreduce.Context;
+import edu.upenn.cis.stormlite.Context;
 import edu.upenn.cis455.mapreduce.Job;
 
 public class WordCount implements Job {

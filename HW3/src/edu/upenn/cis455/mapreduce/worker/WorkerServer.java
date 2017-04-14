@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sleepycat.je.DatabaseException;
 
 import edu.upenn.cis.stormlite.Config;
+import edu.upenn.cis.stormlite.DbEnv;
 import edu.upenn.cis.stormlite.DistributedCluster;
 import edu.upenn.cis.stormlite.TopologyContext;
 import edu.upenn.cis.stormlite.distributed.WorkerHelper;
@@ -117,8 +118,8 @@ public class WorkerServer {
 		File envHome = new File(WorkerServer.storeDir + "/");
 		File[] files = envHome.listFiles();
 		for (File file : files) {
-			file.delete();
-			System.out.println("delete:" + file.getAbsolutePath());
+			if (file.delete())
+				System.out.println("delete:" + file.getAbsolutePath());
 		}
 		envHome.mkdirs();
 		m_dbEnv.setup(envHome, false);
@@ -187,7 +188,7 @@ public class WorkerServer {
 //						crtContext = contexts.get(contexts.size() - 1);
 						crtJob = workerJob.getConfig().get("jobname");
 						crtContext = cluster.submitTopology(crtJob, workerJob.getConfig(),
-								workerJob.getTopology());
+								workerJob.getTopology(), storeDir);
 						
 						//System.out.println("add new contexts : " + contexts.size());
 //						synchronized (topologies) {

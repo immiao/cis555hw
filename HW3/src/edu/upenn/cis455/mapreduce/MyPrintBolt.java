@@ -18,7 +18,6 @@ import edu.upenn.cis.stormlite.routers.StreamRouter;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis.stormlite.tuple.Tuple;
 import edu.upenn.cis455.mapreduce.worker.WorkerServer;
-import test.edu.upenn.cis.stormlite.PrintBolt;
 
 public class MyPrintBolt implements IRichBolt {
 

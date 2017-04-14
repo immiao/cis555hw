@@ -31,7 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,8 +45,6 @@ import edu.upenn.cis.stormlite.routers.StreamRouter;
 import edu.upenn.cis.stormlite.spout.IRichSpout;
 import edu.upenn.cis.stormlite.spout.SpoutOutputCollector;
 import edu.upenn.cis.stormlite.tasks.SpoutTask;
-import edu.upenn.cis455.mapreduce.worker.DbEnv;
-import edu.upenn.cis455.mapreduce.worker.WorkerServer;
 
 /**
  * Use multiple threads to simulate a cluster of worker nodes.
@@ -81,13 +78,13 @@ public class DistributedCluster implements Runnable {
 	
 	Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<Runnable>();
 	public TopologyContext submitTopology(String name, Config config, 
-			Topology topo) throws ClassNotFoundException, DatabaseException, NoSuchAlgorithmException {
+			Topology topo, String workerDir) throws ClassNotFoundException, DatabaseException, NoSuchAlgorithmException {
 		theTopology = name;
 		
 		//String workerName = "worker" + config.get("workerIndex");
 		
 //		File inputDir = new File(WorkerServer.storeDir + "/" + config.get("inputdir"));
-		File outputDir = new File(WorkerServer.storeDir + "/" + config.get("outputdir"));
+		File outputDir = new File(workerDir + "/" + config.get("outputdir"));
 //		if (!inputDir.mkdirs())
 //			System.out.println("Make Input Directory Failed!");
 		if (!outputDir.mkdirs())

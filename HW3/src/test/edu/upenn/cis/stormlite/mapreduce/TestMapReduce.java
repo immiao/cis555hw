@@ -16,14 +16,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.upenn.cis.stormlite.Config;
 import edu.upenn.cis.stormlite.Topology;
 import edu.upenn.cis.stormlite.TopologyBuilder;
-import edu.upenn.cis.stormlite.bolt.MapBolt;
-import edu.upenn.cis.stormlite.bolt.ReduceBolt;
 import edu.upenn.cis.stormlite.distributed.WorkerHelper;
 import edu.upenn.cis.stormlite.distributed.WorkerJob;
 import edu.upenn.cis.stormlite.spout.FileSpout;
 import edu.upenn.cis.stormlite.tuple.Fields;
+import edu.upenn.cis455.mapreduce.MapBolt;
+import edu.upenn.cis455.mapreduce.PrintBolt;
+import edu.upenn.cis455.mapreduce.ReduceBolt;
 import edu.upenn.cis455.mapreduce.worker.WorkerServer;
-import test.edu.upenn.cis.stormlite.PrintBolt;
 
 /**
  * Simple word counter test case, largely derived from

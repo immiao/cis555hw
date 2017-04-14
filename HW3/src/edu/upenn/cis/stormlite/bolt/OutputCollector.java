@@ -20,10 +20,10 @@ package edu.upenn.cis.stormlite.bolt;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.upenn.cis.stormlite.Context;
 import edu.upenn.cis.stormlite.IOutputCollector;
 import edu.upenn.cis.stormlite.TopologyContext;
 import edu.upenn.cis.stormlite.routers.StreamRouter;
-import edu.upenn.cis455.mapreduce.Context;
 
 /**
  * Simplified version of Storm output queues

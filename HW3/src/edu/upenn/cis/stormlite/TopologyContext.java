@@ -24,7 +24,6 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.upenn.cis.stormlite.routers.StreamRouter;
-import edu.upenn.cis455.mapreduce.worker.DbEnv;
 
 /**
  * Information about the execution of a topology, including
