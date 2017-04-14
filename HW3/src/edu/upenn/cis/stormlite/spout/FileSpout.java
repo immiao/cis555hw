@@ -149,14 +149,17 @@ public abstract class FileSpout implements IRichSpout {
 					String[] words = line.split("[ \\t\\,.]");
 
 					for (String word : words) {
-						log.info(getExecutorId() + " emitting " + word);
+//						log.info(getExecutorId() + " emitting " + word);
 						this.collector.emit(new Values<Object>(String.valueOf(inx++), word));
 					}
 				} else if (currentReaderIndex < readers.size() - 1) {
-					currentReader = readers.get(currentReaderIndex + 1);
+					//currentReader.close();
+					currentReaderIndex++;
+					currentReader = readers.get(currentReaderIndex);
+					
 					
 				} else if (!sentEof) {
-					log.info(getExecutorId() + " finished file " + getFilename() + " and emitting EOS");
+					//currentReader.close();
 					this.collector.emitEndOfStream();
 					sentEof = true;
 				}

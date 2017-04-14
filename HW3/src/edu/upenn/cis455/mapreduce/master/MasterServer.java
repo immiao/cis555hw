@@ -73,6 +73,23 @@ public class MasterServer {
 				return "";
 			}
 		});
+		
+		Spark.get(new Route("/informshutdown") {
+
+			@Override
+			public Object handle(Request arg0, Response arg1) {
+				try {
+					servlet.service(arg0.raw(), arg1.raw());
+				} catch (ServletException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return "";
+			}
+		});
 	}
 	
 	public static void createMaster(int port) throws ServletException {

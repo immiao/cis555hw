@@ -4,16 +4,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
 
 import javax.servlet.ServletException;
 
 import org.apache.log4j.PropertyConfigurator;
 
+import com.sleepycat.je.DatabaseException;
+
 import edu.upenn.cis455.mapreduce.master.MasterServer;
 import edu.upenn.cis455.mapreduce.worker.WorkerServer;
 
 public class MapReduce {
-	public static void main(String[] args) throws ServletException, NumberFormatException, IOException {
+	public static void main(String[] args) throws ServletException, NumberFormatException, IOException, DatabaseException, NoSuchAlgorithmException {
 		PropertyConfigurator.configure("log4j.properties");
 
 		if (args.length < 3) {

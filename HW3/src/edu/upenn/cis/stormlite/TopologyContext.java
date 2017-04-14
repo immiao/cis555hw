@@ -52,21 +52,14 @@ public class TopologyContext {
 	 * Mappings from stream IDs to routers
 	 */
 	Map<String,StreamRouter> next = new HashMap<>();
-	
-	DbEnv m_dbEnv;
-	
+		
 	public AtomicInteger keysRead = new AtomicInteger();
 	public AtomicInteger keysWritten = new AtomicInteger();
 	public ArrayList<String> results = new ArrayList<String>();
 
-	public TopologyContext(Topology topo, Queue<Runnable> theTaskQueue, DbEnv dbEnv) {
+	public TopologyContext(Topology topo, Queue<Runnable> theTaskQueue) {
 		topology = topo;
 		taskQueue = theTaskQueue;
-		m_dbEnv = dbEnv;
-	}
-	
-	public DbEnv getDbEnv() {
-		return m_dbEnv;
 	}
 	
 	public Topology getTopology() {

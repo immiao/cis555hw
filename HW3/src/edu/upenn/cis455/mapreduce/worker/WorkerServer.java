@@ -2,6 +2,7 @@ package edu.upenn.cis455.mapreduce.worker;
 
 import static spark.Spark.setPort;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -15,6 +16,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+
+import javax.servlet.ServletException;
 
 import org.apache.log4j.Logger;
 
@@ -39,21 +42,38 @@ import spark.Spark;
  * @author zives
  *
  */
+
+class ShutDownThread extends Thread{
+	@Override
+	public void run() {
+		try {
+			Thread.sleep(2000);
+			WorkerServer.shutdown();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+}
+
 public class WorkerServer {
 	static Logger log = Logger.getLogger(WorkerServer.class);
 
-	static DistributedCluster cluster = new DistributedCluster();
+	static public DistributedCluster cluster = new DistributedCluster();
 
-	List<TopologyContext> contexts = new ArrayList<>();
+//	List<TopologyContext> contexts = new ArrayList<>();
 
-	int myPort;
+	static int myPort;
 
-	static List<String> topologies = new ArrayList<>();
+//	static List<String> topologies = new ArrayList<>();
 
 	TopologyContext crtContext = null;
 	String crtJob = null;
 	
 	static public String storeDir = null;
+	static public DbEnv m_dbEnv = new DbEnv();
+	
+	static String masterAddr = null;
 	
 	private String getWorkerState() {
 		if (crtContext == null)
@@ -89,8 +109,19 @@ public class WorkerServer {
 		}
 	}
 
-	public WorkerServer(String masterAddr, String dir, int myPort) throws MalformedURLException {
+	public WorkerServer(String masterAddr, String dir, int myPort) throws MalformedURLException, DatabaseException, NoSuchAlgorithmException {
 		storeDir = dir;
+		this.myPort = myPort;
+		this.masterAddr = masterAddr;
+		// clear database
+		File envHome = new File(WorkerServer.storeDir + "/");
+		File[] files = envHome.listFiles();
+		for (File file : files) {
+			file.delete();
+			System.out.println("delete:" + file.getAbsolutePath());
+		}
+		envHome.mkdirs();
+		m_dbEnv.setup(envHome, false);
 		
 		TimerTask timerTask = new TimerTask() {
 
@@ -151,12 +182,19 @@ public class WorkerServer {
 //						log.info("Processing job definition request" + workerJob.getConfig().get("job") + " on machine "
 //								+ workerJob.getConfig().get("workerIndex"));
 						// each job has its topology
-						contexts.add(cluster.submitTopology(workerJob.getConfig().get("jobname"), workerJob.getConfig(),
-								workerJob.getTopology()));
-						crtContext = contexts.get(0);
-						synchronized (topologies) {
-							topologies.add(workerJob.getConfig().get("jobname"));
-						}
+//						contexts.add(cluster.submitTopology(workerJob.getConfig().get("jobname"), workerJob.getConfig(),
+//								workerJob.getTopology()));
+//						crtContext = contexts.get(contexts.size() - 1);
+						crtJob = workerJob.getConfig().get("jobname");
+						crtContext = cluster.submitTopology(crtJob, workerJob.getConfig(),
+								workerJob.getTopology());
+						
+						//System.out.println("add new contexts : " + contexts.size());
+//						synchronized (topologies) {
+//							topologies.add(workerJob.getConfig().get("jobname"));
+//						}
+						// directly start job here
+						//cluster.startTopology();
 					} catch (ClassNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -204,8 +242,8 @@ public class WorkerServer {
 					// directly call the up stream's router to execute
 					StreamRouter router = cluster.getStreamRouter(stream);
 
-					if (contexts.isEmpty())
-						log.error("No topology context -- were we initialized??");
+//					if (contexts.isEmpty())
+//						log.error("No topology context -- were we initialized??");
 
 					// increase the
 					if (!tuple.isEndOfStream()) {
@@ -214,13 +252,23 @@ public class WorkerServer {
 						// + " for " + stream + "\n"
 						// + "333Worker received: " +
 						// router.getKey(tuple.getValues()));
-						contexts.get(contexts.size() - 1).incSendOutputs(router.getKey(tuple.getValues()));
+						//contexts.get(contexts.size() - 1).incSendOutputs(router.getKey(tuple.getValues()));
+						crtContext.incSendOutputs(router.getKey(tuple.getValues()));
 					}
-
+					//System.out.println("HERE stream : " + stream + ". Context size : " + contexts.size());
+					if (crtContext == null)
+						System.out.println("NULLLLLLLLLL");
+					if (router == null)
+						System.out.println("Router NULLLLL");
 					if (tuple.isEndOfStream())
-						router.executeEndOfStreamLocally(contexts.get(contexts.size() - 1));
+						router.executeEndOfStreamLocally(crtContext);
 					else
-						router.executeLocally(tuple, contexts.get(contexts.size() - 1));
+						router.executeLocally(tuple, crtContext);
+					
+//					if (tuple.isEndOfStream())
+//						router.executeEndOfStreamLocally(contexts.get(contexts.size() - 1));
+//					else
+//						router.executeLocally(tuple, contexts.get(contexts.size() - 1));
 
 					return "OK";
 				} catch (IOException e) {
@@ -233,6 +281,15 @@ public class WorkerServer {
 
 			}
 
+		});
+		
+		Spark.get(new Route("/shutdown") {
+
+			@Override
+			public Object handle(Request arg0, Response arg1) {
+				new ShutDownThread().start();
+				return "";
+			}
 		});
 	}
 
@@ -261,16 +318,37 @@ public class WorkerServer {
 	// }
 	// }
 
-	public static void createWorker(String masterAddr, String dir, int port) throws MalformedURLException {
+	public static void createWorker(String masterAddr, String dir, int port) throws MalformedURLException, DatabaseException, NoSuchAlgorithmException {
 		new WorkerServer(masterAddr, dir, port);
 	}
 
 	public static void shutdown() {
-		synchronized (topologies) {
-			for (String topo : topologies)
-				cluster.killTopology(topo);
-		}
+		
+//		synchronized (topologies) {
+//			for (String topo : topologies)
+//				cluster.killTopology(topo);
+//		}
 
-		cluster.shutdown();
+//		cluster.shutdown();
+//
+		String strURL = "http://" + masterAddr + "/informshutdown";
+		strURL += "?port=" + myPort;
+		URL respURL = null;
+		try {
+			respURL = new URL(strURL);
+			HttpURLConnection conn = (HttpURLConnection) respURL.openConnection();
+			conn.setDoOutput(true);
+			conn.setRequestMethod("GET");
+			if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+				System.out.println("Inform Shutdown Response Not OK : " + conn.getResponseCode());
+			}
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.exit(0);
 	}
 }

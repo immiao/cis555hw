@@ -36,7 +36,40 @@
 		</javac>
 	</target>
 
-	<target name="all" depends="war-master,war-worker,compile-jobs"/>
+	<target name="compile-stormlite" description="Compiles the stormlite">
+		<mkdir dir="target/worker/WEB-INF/classes" />
+		<javac srcdir="src/edu/upenn/cis/stormlite" destdir="target/worker/WEB-INF/classes" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="compile-test" depends="compile-stormlite" description="compile test">
+		<mkdir dir="target/worker/WEB-INF/classes" />
+		<javac srcdir="src/test/edu/upenn/cis/stormlite" destdir="target/worker/WEB-INF/classes" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="compile-main" depends="compile-test" description="compile main">
+		<mkdir dir="target/worker/WEB-INF/classes" />
+		<javac srcdir="src/edu/upenn/cis455/mapreduce" destdir="target/worker/WEB-INF/classes" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+			<classpath>
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="all" depends="war-master,war-worker,compile-jobs,compile-main"/>
 
 	<target name="war-master" depends="compile-master">
 		<jar destfile="master.war">
@@ -66,5 +99,14 @@
 		<delete dir="classes"/>
 		<delete file="master.war"/>
 		<delete file="worker.war"/>
+	</target>
+
+	<target name="master" description="Start Master Server" depends="all">
+		<java fork="true" classname="edu.upenn.cis455.mapreduce.MapReduce">
+			<classpath>
+				<pathelement location="target/master/WEB-INF/classes"/>
+				<fileset dir="lib" includes="**/*.jar"/>
+			</classpath>
+		</java>
 	</target>
 </project>

@@ -17,7 +17,9 @@
  */
 package edu.upenn.cis.stormlite;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,20 +80,11 @@ public class DistributedCluster implements Runnable {
 																// between EOS propagation and tuple propagation!
 	
 	Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<Runnable>();
-	
-	DbEnv m_dbEnv = new DbEnv();
-	
 	public TopologyContext submitTopology(String name, Config config, 
 			Topology topo) throws ClassNotFoundException, DatabaseException, NoSuchAlgorithmException {
 		theTopology = name;
 		
 		//String workerName = "worker" + config.get("workerIndex");
-		File envHome = new File(WorkerServer.storeDir + "/");
-//		if (envHome.exists()) {
-//			if (envHome.delete())
-//				System.out.println("Env Home Deleted");
-//		}
-		envHome.mkdirs();
 		
 //		File inputDir = new File(WorkerServer.storeDir + "/" + config.get("inputdir"));
 		File outputDir = new File(WorkerServer.storeDir + "/" + config.get("outputdir"));
@@ -99,10 +92,8 @@ public class DistributedCluster implements Runnable {
 //			System.out.println("Make Input Directory Failed!");
 		if (!outputDir.mkdirs())
 			System.out.println("Make Output Directory Failed!");
-		
-		m_dbEnv.setup(envHome, false);
 
-		context = new TopologyContext(topo, taskQueue, m_dbEnv);
+		context = new TopologyContext(topo, taskQueue);
 		
 		boltStreams.clear();
 		spoutStreams.clear();
@@ -114,13 +105,14 @@ public class DistributedCluster implements Runnable {
 		
 		createRoutes(topo, config);
 		scheduleSpouts();
-		
 		return context;
 	}
 	
 	public void startTopology() {
 		// Put the run method in a background thread
 		new Thread(this).start();
+		quit.set(false);
+		System.out.println("START THREAD!");
 		
 	}
 	
@@ -219,7 +211,7 @@ public class DistributedCluster implements Runnable {
 			// up stream's router, though it exists in down stream's declarer
 			// only one router for multiple up streams and down streams
 			StreamRouter router = decl.getRouter(); 
-			
+			System.out.println("router put put put");
 			streams.put(stream, router);
 			
 			int count = boltStreams.get(stream).size();
@@ -311,7 +303,7 @@ public class DistributedCluster implements Runnable {
 	public void shutdown() {
 		closeSpoutInstances();
 		closeBoltInstances();
-
+		quit.set(true);
 		System.out.println("Shutting down distributed cluster.");
 	}
 

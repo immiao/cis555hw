@@ -13,6 +13,7 @@ import edu.upenn.cis.stormlite.OutputFieldsDeclarer;
 import edu.upenn.cis.stormlite.TopologyContext;
 import edu.upenn.cis.stormlite.bolt.IRichBolt;
 import edu.upenn.cis.stormlite.bolt.OutputCollector;
+import edu.upenn.cis.stormlite.distributed.WorkerHelper;
 import edu.upenn.cis.stormlite.routers.StreamRouter;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis.stormlite.tuple.Tuple;
@@ -30,17 +31,10 @@ public class MyPrintBolt implements IRichBolt {
 	TopologyContext context = null;
 	FileWriter fw = null;
 	BufferedWriter bw = null;
-	
+	int neededVotesToComplete = 0;
 	@Override
 	public void cleanup() {
 		// Do nothing
-		try {
-			bw.close();
-			fw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	@Override
@@ -64,6 +58,19 @@ public class MyPrintBolt implements IRichBolt {
 				if (context.results.size() < 100)
 					context.results.add(input.toString());
 			}
+		} else {
+			neededVotesToComplete--;
+			if (neededVotesToComplete == 0) {
+				context.setState(TopologyContext.STATE.IDLE);
+				try {
+					bw.close();
+					fw.close();
+					WorkerServer.cluster.shutdown();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -80,6 +87,8 @@ public class MyPrintBolt implements IRichBolt {
 			e.printStackTrace();
 		}
 		bw = new BufferedWriter(fw);
+		int totalReduceBoltPerWorker = Integer.parseInt(stormConf.get("reduceExecutors"));
+		neededVotesToComplete = totalReduceBoltPerWorker * WorkerHelper.getWorkers(stormConf).length;
 	}
 
 	@Override

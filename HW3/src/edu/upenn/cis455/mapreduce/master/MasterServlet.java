@@ -3,16 +3,13 @@ package edu.upenn.cis455.mapreduce.master;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.servlet.*;
 import javax.servlet.http.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.xml.internal.ws.addressing.v200408.WsaTubeHelperImpl;
 
 import edu.upenn.cis.stormlite.Config;
 import edu.upenn.cis.stormlite.Topology;
@@ -24,8 +21,6 @@ import edu.upenn.cis.stormlite.spout.FileSpout;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis455.mapreduce.MyFileSpout;
 import edu.upenn.cis455.mapreduce.MyPrintBolt;
-import test.edu.upenn.cis.stormlite.PrintBolt;
-import test.edu.upenn.cis.stormlite.mapreduce.WordFileSpout;
 
 class WorkerStatus {
 	public String ip;
@@ -85,7 +80,7 @@ public class MasterServlet extends HttpServlet {
 			content += "<html>";
 			content += "<style>table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}";
 			content += "td, th {border: 1px solid #dddddd;text-align: left;padding: 8px;}tr:nth-child(even) {";
-			content += "background-color: #dddddd;}</style>";
+			content += "background-color: #dddddd;}input{width:100%;}</style>";
 			content += "<body>";
 			content += "<table>";
 			content += "<tr><th>Workers</th><th>IP:port</th><th>status</th><th>job</th><th>keys read</th><th>keys written</th><th>results</th></tr>";
@@ -111,11 +106,11 @@ public class MasterServlet extends HttpServlet {
 			
 			content += "</table>";
 			content += "<form action=\"/status\" method=\"get\" />";
-			content += "Class Name of the Job: <input type=\"text\" name=\"jobname\" /><br/>";
-			content += "Input Directory: <input type=\"text\" name=\"inputdir\" /><br/>";
-			content += "Output Directory: <input type=\"text\" name=\"outputdir\" /><br/>";
-			content += "Number of Map Executor: <input type=\"text\" name=\"mapnum\" /><br/>";
-			content += "Numer of Reduce Executor: <input type=\"text\" name=\"reducenum\" /><br/>";
+			content += "Class Name of the Job: <input type=\"text\" name=\"jobname\" value=\"edu.upenn.cis455.mapreduce.job.WordCount\"/><br/>";
+			content += "Input Directory: <input type=\"text\" name=\"inputdir\" value=\"input\"/><br/>";
+			content += "Output Directory: <input type=\"text\" name=\"outputdir\" value=\"output\"/><br/>";
+			content += "Number of Map Executor: <input type=\"text\" name=\"mapnum\" value=\"1\"/><br/>";
+			content += "Numer of Reduce Executor: <input type=\"text\" name=\"reducenum\" value=\"1\"/><br/>";
 			content += "<input type=\"submit\" value=\"Submit New Job\" />";
 			content += "</form>";
 			content += "</body>";
@@ -188,7 +183,13 @@ public class MasterServlet extends HttpServlet {
 						throw new RuntimeException("Job definition request failed");
 					}
 				}
-				
+				// wait for completing the cluster construction
+//				try {
+//					Thread.sleep(3000);
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 				// run job
 				for (String worker : workerStatus.keySet()) {
 					WorkerStatus ws = workerStatus.get(worker);
@@ -218,6 +219,49 @@ public class MasterServlet extends HttpServlet {
 			ws.results = request.getParameter("results");
 			ws.lastUpdate = new Date().getTime();
 			workerStatus.put(addr, ws);
+		} else if (uri.equals("/shutdown")) {
+//			Iterator<String> iterator = workerStatus.keySet().iterator();
+//			while (iterator.hasNext()) {
+//				WorkerStatus ws = workerStatus.get(iterator.next());
+//				if (new Date().getTime() - ws.lastUpdate > 30000) {
+//					System.out.println("Worker Expires");
+//					iterator.remove();
+//					continue;
+//				}
+//			}
+			OutputStream out = response.getOutputStream();
+			String content = new String();
+			int counter = 0;	
+			for (String worker : workerStatus.keySet()) {
+				WorkerStatus ws = workerStatus.get(worker);
+				String strURL = "http://" + ws.ip + ":" + ws.port + "/shutdown";
+				URL respURL = new URL(strURL);
+				System.out.println(strURL);
+				HttpURLConnection conn = (HttpURLConnection) respURL.openConnection();
+				conn.setDoOutput(true);
+				conn.setRequestMethod("GET");
+				if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+					System.out.println("Shutdown Response Not OK : " + conn.getResponseCode());
+				}
+				counter++;
+			}
+			content += "Successfully Shutdown " + counter + " Workers";
+			out.write(content.getBytes());
+		} else if (uri.equals("/informshutdown")) {
+//			System.out.println("inform shutdown IN");
+			String ip = request.getRemoteAddr();
+			String port = request.getParameter("port");
+			String addr = ip + ":" + port;
+//			System.out.println("search worker: " + addr);
+//			Iterator<String> iterator = workerStatus.keySet().iterator();
+//			while (iterator.hasNext()) {
+//				System.out.println("ALL workers :" + iterator.next());
+//			}
+			if (workerStatus.remove(addr) == null)
+				System.out.println("No Such Worker");
+			else
+				System.out.println("Shut Down Worker : " + addr);
+			//response.sendRedirect("/status");
 		}
 		// content +=
 		// out.write("<html><head><title>Master</title></head>".getBytes());

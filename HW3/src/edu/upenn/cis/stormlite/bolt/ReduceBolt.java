@@ -16,6 +16,7 @@ import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis.stormlite.tuple.Tuple;
 import edu.upenn.cis455.mapreduce.Job;
 import edu.upenn.cis455.mapreduce.worker.DbEnv;
+import edu.upenn.cis455.mapreduce.worker.WorkerServer;
 
 /**
  * A simple adapter that takes a MapReduce "Job" and calls the "reduce"
@@ -23,180 +24,183 @@ import edu.upenn.cis455.mapreduce.worker.DbEnv;
  * 
  */
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with this
+ * work for additional information regarding copyright ownership. The ASF
+ * licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 public class ReduceBolt implements IRichBolt {
 	static Logger log = Logger.getLogger(ReduceBolt.class);
 
-	
 	Job reduceJob;
 
-    /**
-     * To make it easier to debug: we have a unique ID for each
-     * instance of the WordCounter, aka each "executor"
-     */
-    String executorId = UUID.randomUUID().toString();
-    
+	/**
+	 * To make it easier to debug: we have a unique ID for each instance of the
+	 * WordCounter, aka each "executor"
+	 */
+	String executorId = UUID.randomUUID().toString();
+
 	Fields schema = new Fields("key", "value");
-	
+
 	boolean sentEof = false;
-	
+
 	/**
 	 * Buffer for state, by key
 	 */
 	Map<String, List<String>> stateByKey = new HashMap<>();
 
 	/**
-     * This is where we send our output stream
-     */
-    private OutputCollector collector;
-    
-    private TopologyContext context;
-    
-    int neededVotesToComplete = 0;
-    
-    DbEnv m_dbEnv;
-    
-    public ReduceBolt() {
-    }
-    
-    /**
-     * Initialization, just saves the output stream destination
-     */
-    @Override
-    public void prepare(Map<String,String> stormConf, 
-    		TopologyContext context, OutputCollector collector) {
-        this.collector = collector;
-        this.context = context;
-        this.m_dbEnv = context.getDbEnv();
-        m_dbEnv.addReduceBoltDb(executorId);
-        
-        if (!stormConf.containsKey("jobname"))
-        	throw new RuntimeException("Mapper class is not specified as a config option");
-        else {
-        	String mapperClass = stormConf.get("jobname");
-        	
-        	try {
-				reduceJob = (Job)Class.forName(mapperClass).newInstance();
+	 * This is where we send our output stream
+	 */
+	private OutputCollector collector;
+
+	private TopologyContext context;
+
+	int neededVotesToComplete = 0;
+
+	public ReduceBolt() {
+	}
+
+	/**
+	 * Initialization, just saves the output stream destination
+	 */
+	@Override
+	public void prepare(Map<String, String> stormConf, TopologyContext context, OutputCollector collector) {
+		this.collector = collector;
+		this.context = context;
+		WorkerServer.m_dbEnv.addReduceBoltDb(executorId);
+
+		if (!stormConf.containsKey("jobname"))
+			throw new RuntimeException("Mapper class is not specified as a config option");
+		else {
+			String mapperClass = stormConf.get("jobname");
+
+			try {
+				reduceJob = (Job) Class.forName(mapperClass).newInstance();
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw new RuntimeException("Unable to instantiate the class " + mapperClass);
 			}
-        }
-        if (!stormConf.containsKey("mapExecutors")) {
-        	throw new RuntimeException("Reducer class doesn't know how many map bolt executors");
-        }
+		}
+		if (!stormConf.containsKey("mapExecutors")) {
+			throw new RuntimeException("Reducer class doesn't know how many map bolt executors");
+		}
 
-        // TODO: determine how many EOS votes needed
-//        String[] workers = WorkerHelper.getWorkers(stormConf);
-//        int totalMapBoltsPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
-//        neededVotesToComplete = workers.length * totalMapBoltsPerWorker;
-        int totalMapBoltPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
-        int totalReduceBoltPerWorker = Integer.parseInt(stormConf.get("reduceExecutors"));
-        neededVotesToComplete = totalReduceBoltPerWorker * (WorkerHelper.getWorkers(stormConf).length - 1) * totalReduceBoltPerWorker + totalMapBoltPerWorker;
-    }
+		// TODO: determine how many EOS votes needed
+		// String[] workers = WorkerHelper.getWorkers(stormConf);
+		// int totalMapBoltsPerWorker =
+		// Integer.parseInt(stormConf.get("mapExecutors"));
+		// neededVotesToComplete = workers.length * totalMapBoltsPerWorker;
+		int totalMapBoltPerWorker = Integer.parseInt(stormConf.get("mapExecutors"));
+		int totalReduceBoltPerWorker = Integer.parseInt(stormConf.get("reduceExecutors"));
+		neededVotesToComplete = totalMapBoltPerWorker * (WorkerHelper.getWorkers(stormConf).length - 1)
+				* totalReduceBoltPerWorker + totalMapBoltPerWorker;
+	}
 
-    /**
-     * Process a tuple received from the stream, buffering by key
-     * until we hit end of stream
-     */
-    @Override
-    public synchronized void execute(Tuple input) {
-    	if (sentEof) {
-	        if (!input.isEndOfStream())
-	        	throw new RuntimeException("We received data after we thought the stream had ended!");
-    		// Already done!
+	/**
+	 * Process a tuple received from the stream, buffering by key until we hit
+	 * end of stream
+	 */
+	@Override
+	public synchronized void execute(Tuple input) {
+		if (sentEof) {
+			if (!input.isEndOfStream())
+				throw new RuntimeException("We received data after we thought the stream had ended!");
+			// Already done!
 		} else if (input.isEndOfStream()) {
-			
-			// TODO: only if at EOS do we trigger the reduce operation and output all state
+
+			// TODO: only if at EOS do we trigger the reduce operation and
+			// output all state
 			neededVotesToComplete--;
-			//log.info("reduce bolt remaining EOS: " + neededVotesToComplete);
+//			log.info("reduce bolt remaining EOS: " + neededVotesToComplete);
 			if (neededVotesToComplete == 0) {
-//				for (String key : stateByKey.keySet()) {
-//					reduceJob.reduce(key, stateByKey.get(key).iterator(), collector);
-//				}
-				HashMap<String, ArrayList<String>> groups = m_dbEnv.getAllGroup(executorId);
-				context.setState(TopologyContext.STATE.REDUCE);
-				
-				context.keysRead.set(0);
-				context.keysWritten.set(0);
+				// for (String key : stateByKey.keySet()) {
+				// reduceJob.reduce(key, stateByKey.get(key).iterator(),
+				// collector);
+				// }
+
+				HashMap<String, ArrayList<String>> groups = WorkerServer.m_dbEnv.getAllGroup(executorId);
+
+				if (context.getState() == TopologyContext.STATE.WAITING) {
+					context.setState(TopologyContext.STATE.REDUCE);
+
+					context.keysRead.set(0);
+					context.keysWritten.set(0);
+				}
 				
 				for (String key : groups.keySet()) {
 					context.keysRead.incrementAndGet();
-					reduceJob.reduce(key,  groups.get(key).iterator(), collector);
+					reduceJob.reduce(key, groups.get(key).iterator(), collector);
 					context.keysWritten.incrementAndGet();
 					context.incReduceOutputs(key);
-					//log.info("SIZE: " + groups.get(key).size());
+					//System.out.println("INC");
+					// log.info("SIZE: " + groups.get(key).size());
 				}
+
 				collector.emitEndOfStream();
-				context.setState(TopologyContext.STATE.IDLE);
-				
+
 				sentEof = true;
 			}
-    	} else {
-    		// TODO: this is a plain ol' hash map, replace it with BerkeleyDB
-    		
-//    		String key = input.getStringByField("key");
-//	        String value = input.getStringByField("value");
-//	        log.debug(getExecutorId() + " received " + key + " / " + value);
-//	        log.info(getExecutorId() + " received " + key + " / " + value);
-//	        synchronized (stateByKey) {
-//		        if (!stateByKey.containsKey(key))
-//		        	stateByKey.put(key, new ArrayList<>());
-//		        else
-//		        	log.debug("Adding item to " + key + " / " + stateByKey.get(key).size());
-//		        stateByKey.get(key).add(value);
-//	        }
-    		
-    		String key = input.getStringByField("key");
-    		String value = input.getStringByField("value");
-    		log.info(getExecutorId() + " received " + key + " / " + value);
-    		m_dbEnv.addValue(executorId, key, value);
-    	}        
-    }
+		} else {
+			// TODO: this is a plain ol' hash map, replace it with BerkeleyDB
 
-    /**
-     * Shutdown, just frees memory
-     */
-    @Override
-    public void cleanup() {
-    }
+			// String key = input.getStringByField("key");
+			// String value = input.getStringByField("value");
+			// log.debug(getExecutorId() + " received " + key + " / " + value);
+			// log.info(getExecutorId() + " received " + key + " / " + value);
+			// synchronized (stateByKey) {
+			// if (!stateByKey.containsKey(key))
+			// stateByKey.put(key, new ArrayList<>());
+			// else
+			// log.debug("Adding item to " + key + " / " +
+			// stateByKey.get(key).size());
+			// stateByKey.get(key).add(value);
+			// }
 
-    /**
-     * Lets the downstream operators know our schema
-     */
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(schema);
-    }
+			String key = input.getStringByField("key");
+			String value = input.getStringByField("value");
+//			log.info(getExecutorId() + " received " + key + " / " + value);
+			WorkerServer.m_dbEnv.addValue(executorId, key, value);
+		}
+	}
 
-    /**
-     * Used for debug purposes, shows our exeuctor/operator's unique ID
-     */
+	/**
+	 * Shutdown, just frees memory
+	 */
+	@Override
+	public void cleanup() {
+	}
+
+	/**
+	 * Lets the downstream operators know our schema
+	 */
+	@Override
+	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+		declarer.declare(schema);
+	}
+
+	/**
+	 * Used for debug purposes, shows our exeuctor/operator's unique ID
+	 */
 	@Override
 	public String getExecutorId() {
 		return executorId;
 	}
 
 	/**
-	 * Called during topology setup, sets the router to the next
-	 * bolt
+	 * Called during topology setup, sets the router to the next bolt
 	 */
 	@Override
 	public void setRouter(StreamRouter router) {
