@@ -1,41 +1,4 @@
-Full name:  Kaixiang Miao
-SEAS login: miaok
-
-Which features did you implement? 
-  (list features, or write 'Entire assignment')
-Entire assignment.
-
-Did you complete any extra-credit tasks? If so, which ones?
-  (list extra-credit tasks)
-No.
-
-Any special instructions for building and running your solution?
-  (include detailed instructions, or write 'None')
-
-How to run my program:
 Use 'ant master' to set up a master server. Default port is 8000.
 Use 'ant worker1' to set up a worker, whose port is 8001 and directory is 'database0'.
 Use 'ant worker2' to set up a worker, whose port is 8002 and directory is 'database1'.
 Use 'ant worker3' to set up a worker, whose port is 8003 and directory is 'database2'.
-Edit the build.xml file to change the command-line parameters of these servers.
-
-Some details:
-1. My program is able to execute a next job without restarting these servers. I shut down the
-cluster(but not the worker) after each job. Defining a new job will start a new cluster thread.
-
-2. Use /shutdown to shut down all the workers. In order to receive response from the workers,
-I use a shut-down thread to shut down the worker. Worker will response to the master first,
-start the shut-down thread, and wait for 2 seconds then shut down itself.
-
-Did you personally write _all_ the code you are submitting
-(other than code from the course web page)?
-  [X] Yes
-  [ ] No
-
-Did you copy any code from the Internet, or from classmates?
-  [ ] Yes
-  [X] No
-
-Did you collaborate with anyone on this assignment?
-  [ ] Yes
-  [X] No
